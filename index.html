@@ -233,7 +233,12 @@
 <script src="js/game.js"></script>
 <script>
 // Installable offline app: save the game on this device (only when served from a web address, not a local file)
-if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  // when a newer version has just been saved and takes over, reload once so it shows straight away
+  const hadOne = !!navigator.serviceWorker.controller; let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadOne && !reloaded) { reloaded = true; location.reload(); } });
+  navigator.serviceWorker.register("sw.js").then((r) => r.update()).catch(() => {});
+}
 // "Install as an app" (Settings): shown only while running in a browser tab. Android/Chrome offers its install
 // dialog; iPhone/iPad can't be prompted, so the button explains Share → Add to Home Screen instead.
 (function () {
@@ -242,11 +247,19 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) naviga
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   let deferred = null;
   if (installed || !location.protocol.startsWith("http")) return;
-  if (ios) { row.classList.remove("hidden"); btn.textContent = "How?";
-    btn.onclick = () => { hint.textContent = "In Safari, tap the Share button (the square with an arrow), then “Add to Home Screen”, then Add."; btn.classList.add("hidden"); }; }
-  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferred = e; row.classList.remove("hidden"); });
-  btn.addEventListener("click", async () => { if (!deferred) return; deferred.prompt(); const r = await deferred.userChoice; deferred = null;
-    if (r && r.outcome === "accepted") row.classList.add("hidden"); });
+  row.classList.remove("hidden"); // always offered in a browser tab
+  const ua = navigator.userAgent;
+  const steps = ios ? "In Safari, tap the Share button (the square with an arrow), then “Add to Home Screen”, then Add."
+    : /SamsungBrowser/i.test(ua) ? "Tap the menu (☰) at the bottom, then “Add page to” → “Home screen”."
+    : /Firefox/i.test(ua) ? "Tap the menu (⋮), then “Install” (or “Add to Home screen”)."
+    : /Android/i.test(ua) ? "Tap Chrome’s menu (⋮, top right), then “Install app” or “Add to Home screen”. Opened from a chat app? Choose “Open in Chrome” first."
+    : "Use your browser’s menu: “Install app” (Chrome, Edge) or “Add to Home Screen” (Safari).";
+  if (ios) btn.textContent = "How?";
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferred = e; btn.textContent = "Install"; });
+  btn.addEventListener("click", async () => {
+    if (deferred) { deferred.prompt(); const r = await deferred.userChoice; deferred = null; if (r && r.outcome === "accepted") row.classList.add("hidden"); return; }
+    hint.textContent = steps; btn.classList.add("hidden"); // no install dialog available here: show the menu steps instead
+  });
   window.addEventListener("appinstalled", () => row.classList.add("hidden"));
 })();
 </script>

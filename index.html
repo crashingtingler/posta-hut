@@ -167,6 +167,7 @@
   <section id="settings" class="screen">
     <h2 class="heading">Settings</h2>
     <div class="settings-list">
+      <div class="set hidden" id="install-row" style="cursor:default"><span style="flex:1"><b>Install as an app</b><small id="install-hint">Puts Posta hut on your home screen. It opens full-screen and works with no signal.</small></span><button class="big ghost" id="install-btn" style="min-height:40px;font-size:16px;padding:4px 14px">Install</button></div>
       <div class="set" style="cursor:default"><span style="flex:1"><b>Your name</b><small>Shown on the Hall of Masters: <span id="settings-name"></span></small></span><button class="big ghost" id="change-name" style="min-height:40px;font-size:16px;padding:4px 14px">Change</button></div>
       <label class="set"><input type="checkbox" id="opt-plates"><span><b>Only play with plates</b><small>Questions show the original manuscript drawings instead of drawn fencers. Only guards with a plate are asked.</small></span></label>
       <label class="set"><input type="checkbox" id="opt-sound"><span><b>Sound</b><small>Blade clashes, thuds and the coin toss.</small></span></label>
@@ -233,6 +234,21 @@
 <script>
 // Installable offline app: save the game on this device (only when served from a web address, not a local file)
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
+// "Install as an app" (Settings): shown only while running in a browser tab. Android/Chrome offers its install
+// dialog; iPhone/iPad can't be prompted, so the button explains Share → Add to Home Screen instead.
+(function () {
+  const row = document.getElementById("install-row"), btn = document.getElementById("install-btn"), hint = document.getElementById("install-hint");
+  const installed = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  let deferred = null;
+  if (installed || !location.protocol.startsWith("http")) return;
+  if (ios) { row.classList.remove("hidden"); btn.textContent = "How?";
+    btn.onclick = () => { hint.textContent = "In Safari, tap the Share button (the square with an arrow), then “Add to Home Screen”, then Add."; btn.classList.add("hidden"); }; }
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferred = e; row.classList.remove("hidden"); });
+  btn.addEventListener("click", async () => { if (!deferred) return; deferred.prompt(); const r = await deferred.userChoice; deferred = null;
+    if (r && r.outcome === "accepted") row.classList.add("hidden"); });
+  window.addEventListener("appinstalled", () => row.classList.add("hidden"));
+})();
 </script>
 </body>
 </html>

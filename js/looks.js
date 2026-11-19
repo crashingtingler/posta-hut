@@ -1,0 +1,36 @@
+// Random fencer looks, drawn from the costume rosters in data/guards.js (window.LOOKS).
+(function () {
+  const PARCH = "#efe2c4";
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const chance = (p) => Math.random() < p;
+  const pickWeighted = (w) => { let r = Math.random(); for (let i = 0; i < w.length; i++) { r -= w[i]; if (r < 0) return i; } return 0; };
+  function mix(a, b, t) {
+    const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+    return "#" + [16, 8, 0].map((s) => Math.round(((pa >> s) & 255) * (1 - t) + ((pb >> s) & 255) * t)
+      .toString(16).padStart(2, "0")).join("");
+  }
+  function randomLook(tradition) {
+    const R = (window.LOOKS || {})[tradition];
+    const base = { style: "fiore", jacket: "#f1e9da", thigh: "#f1e9da", shin: "#f1e9da", shoe: null, hair: "#3b2a1d",
+                   beard: 0, mustache: false, crown: false, garter: false, chaperone: false, ruff: false, cap: false, bulk: 1, source: "" };
+    if (!R) return base;
+    const look = Object.assign({}, base, { style: R.style, source: R.source, hair: pick(R.hair),
+      beard: pickWeighted(R.beard), mustache: chance(0.4), bulk: 0.92 + Math.random() * 0.2 });
+    if (R.style === "fiore") {
+      look.jacket = pick(R.jackets); look.thigh = look.shin = mix(look.jacket, PARCH, 0.25);
+      look.crown = chance(R.crown);
+      // Fiore marks masters with a crown and scholars with a gold garter below the left knee: one or the other
+      look.garter = !look.crown && chance(R.garter == null ? 1 : R.garter);
+      // some of the uncrowned wear a chaperone, the padded hat of early-1400s Italy, in a muted cloth colour
+      look.chaperone = !look.crown && chance(R.chaperone || 0);
+      if (look.chaperone) look.chapColor = pick(R.chapColors || ["#7e2620"]);
+    } else {
+      look.jacket = pick(R.jackets);
+      look.thigh = pick(R.breeches.filter((c) => c !== look.jacket));
+      look.shin = pick(R.hose); look.shoe = "#1d1712";
+      look.ruff = chance(R.ruff); look.cap = chance(R.cap);
+    }
+    return look;
+  }
+  window.Looks = { randomLook };
+})();

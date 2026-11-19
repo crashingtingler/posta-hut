@@ -1,0 +1,166 @@
+<!doctype html><meta charset=utf-8>
+<body style="margin:0;background:#efe2c4;color:#1d1712;font:14px Georgia">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.3.4/opentype.min.js"></script>
+<script src="mask.js"></script><script src="dbg.js"></script>
+<script>
+// "Meyer 1570": a display font traced from the chapter headings of Joachim Meyer's
+// Gründtliche Beschreibung der Kunst des Fechtens (Strasbourg 1570, Leipzig UB copy).
+// Each glyph: [char, line, x0, y0, x1, y1 (page px), flags]; flag "x" = x-height letter on the baseline
+// (used to measure that line's baseline and x-height).
+const LINES = {
+  L87:  { src: "pages/p87.jpg",  ink: "black", k: 38 },
+  L92a: { src: "pages/p92.jpg",  ink: "black", k: 38 },
+  L92b: { src: "pages/p92.jpg",  ink: "black", k: 38 },
+  L102: { src: "pages/p102.jpg", ink: "black", k: 38 },
+  L65:  { src: "pages/p65.jpg",  ink: "black", k: 38 },
+  L61:  { src: "pages/p61.jpg",  ink: "black", k: 38 },
+  L75:  { src: "pages/p75.jpg",  ink: "black", k: 38 },
+  L56:  { src: "pages/p56.jpg",  ink: "black", k: 38 },
+  L101: { src: "pages/p101.jpg", ink: "black", k: 38 },
+  L59:  { src: "pages/p59.jpg",  ink: "black", k: 38 },
+  L69:  { src: "pages/p69.jpg",  ink: "black", k: 38 },
+  L45: { src: "pages/p45.jpg", ink: "black", k: 38 }, L70: { src: "pages/p70.jpg", ink: "black", k: 38 },
+  L91: { src: "pages/p91.jpg", ink: "black", k: 38 }, L95: { src: "pages/p95.jpg", ink: "black", k: 38 },
+  L67: { src: "pages/p67.jpg", ink: "black", k: 38 },
+  LT1: { src: "Meyer_1570_Title.png", ink: "red", k: 16 },
+  L46: { src: "pages/p46.jpg", ink: "black", k: 38 },
+};
+const G = [
+  ["A", "L87", 1044, 218, 1106, 285], ["u", "L87", 1098, 240, 1124, 282, "x"],
+  ["d", "L87", 1156, 226, 1190, 282],
+  ["z", "L87", 1454, 230, 1476, 298], ["ü", "L87", 1476, 228, 1512, 282],
+  ["f", "L87", 1524, 230, 1545, 302, "c"],
+  ["F", "L92a", 672, 210, 734, 282], ["a", "L92a", 886, 240, 912, 285, "x"], ["ß", "L92a", 945, 205, 980, 295],
+  ["D", "L92b", 768, 300, 838, 368], ["O", "L92b", 893, 308, 958, 372], ["s", "L92b", 1008, 322, 1032, 368, "x"],
+  ["m", "L92b", 1040, 325, 1093, 372, "x"], [".", "L92b", 1128, 352, 1142, 374],
+  ["L", "L102", 850, 320, 912, 392], [null, "L102", 910, 348, 940, 390, "x"], [null, "L102", 940, 350, 968, 390, "x"],
+  ["g", "L102", 966, 350, 998, 412], ["o", "L102", 998, 348, 1030, 390, "x"],
+  ["S", "L65", 1284, 286, 1353, 360], ["p", "L65", 1354, 306, 1391, 392], [null, "L65", 1480, 310, 1512, 355, "x"],
+  ["Z", "L61", 1288, 304, 1343, 382], ["i", "L61", 1343, 313, 1357, 368], ["r", "L61", 1356, 330, 1380, 368, "x"],
+  ["c", "L61", 1380, 330, 1400, 368, "x"], ["k", "L61", 1400, 300, 1424, 368, "c"], ["l", "L61", 1450, 303, 1466, 368],
+  ["W", "L75", 904, 230, 974, 298], [null, "L75", 1020, 250, 1067, 292, "x"], ["B", "L75", 1455, 230, 1522, 298],
+  ["H", "L56", 854, 198, 905, 285, "c"], ["n", "L56", 940, 230, 968, 272, "x"], ["b", "L56", 1072, 200, 1104, 272],
+  ["M", "L101", 1224, 322, 1303, 395], [null, "L101", 1365, 352, 1388, 388, "x"],
+  ["V", "L59", 1314, 312, 1377, 380], [null, "L59", 1400, 335, 1425, 378, "x"], [null, "L59", 1442, 328, 1466, 372, "xc", 24], ["h", "L59", 1466, 310, 1494, 388],
+  ["G", "L69", 1388, 308, 1458, 378], ["v", "L69", 1582, 330, 1610, 372, "xc"], ["J", "L69", 1666, 310, 1740, 390],
+  ["K", "L45", 1220, 304, 1265, 372, "c"], [null, "L45", 1290, 320, 1320, 368, "x"], ["w", "L45", 1489, 316, 1533, 370, "c"],
+  ["I", "L70", 874, 548, 940, 632, "c"], [null, "L70", 994, 580, 1011, 621, "x"],
+  ["R", "L91", 1274, 608, 1330, 674, "c"], [null, "L91", 1330, 624, 1350, 663, "x"],
+  [null, "L95", 1320, 308, 1346, 352, "x"],
+  ["E", "L67", 1020, 808, 1080, 878, "c"], [null, "L67", 1108, 820, 1141, 870, "x"], ["T", "L67", 1598, 806, 1650, 882, "c"],
+  ["t", "LT1", 1252, 700, 1302, 858], ["e", "LT1", 1500, 728, 1566, 858, "x", 8], [null, "LT1", 1384, 735, 1430, 858, "x"],
+  ["P", "L46", 856, 766, 923, 860, "c"], [null, "L46", 925, 788, 955, 832, "x"],
+];
+const UPM = 1000, XH = 470, SB = 36, UP = 4; // units per em, x-height in units, side bearing, trace upsampling
+const imgs = {};
+const load = (src) => imgs[src] || (imgs[src] = new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = src; }));
+
+// Extract one glyph: components (at the line threshold) mostly inside the box, traced at UP x resolution.
+async function extract(gl) {
+  const [ch, line, bx0, by0, bx1, by1] = gl, L0 = LINES[line], L = Object.assign({}, L0, gl[7] ? { k: gl[7] } : {}), im = await load(L.src);
+  const pad = 14, X0 = bx0 - pad, Y0 = by0 - pad, W = bx1 - bx0 + 2 * pad, H = by1 - by0 + 2 * pad;
+  const c = document.createElement("canvas"); c.width = W; c.height = H; const cx = c.getContext("2d");
+  cx.drawImage(im, X0, Y0, W, H, 0, 0, W, H); const d = cx.getImageData(0, 0, W, H).data;
+  const m = inkMask(d, W, H, L.ink, L.k, 2);
+  // raw ink field, lightly blurred, for smooth outlines
+  const v = new Float32Array(W * H);
+  for (let i = 0; i < W * H; i++) { const r = d[i*4], g = d[i*4+1], b = d[i*4+2]; v[i] = L.ink === "red" ? Math.max(0, (r - g) - 0.35 * (r - b)) : Math.max(0, 200 - (r + g + b) / 3); }
+  const f = new Float32Array(W * H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { let s = 0, n = 0;
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const xx = x + dx, yy = y + dy; if (xx >= 0 && yy >= 0 && xx < W && yy < H) { s += v[yy * W + xx]; n++; } }
+    f[y * W + x] = s / n; }
+  // components; keep those with most of their area inside the box
+  const lab = new Int32Array(W * H), keep = new Set(); let n = 0;
+  for (let i = 0; i < W * H; i++) if (m[i] && !lab[i]) { n++; const st = [i]; lab[i] = n; let a = 0, inside = 0;
+    while (st.length) { const p = st.pop(), px = p % W, py = (p / W) | 0; a++; if (px >= pad && px < W - pad && py >= pad && py < H - pad) inside++;
+      for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]]) { const qx = px + dx, qy = py + dy;
+        if (qx >= 0 && qy >= 0 && qx < W && qy < H) { const q = qy * W + qx; if (m[q] && !lab[q]) { lab[q] = n; st.push(q); } } } }
+    if (a >= 8 && inside / a > 0.5) { keep.add(n); (window.__areas = window.__areas || {})[n] = a; } }
+  // drop specks: anything under 3% of the largest kept piece
+  { const mx = Math.max(0, ...[...keep].map((q) => window.__areas[q])); for (const q of [...keep]) if (window.__areas[q] < 0.03 * mx) keep.delete(q); window.__areas = {}; }
+  // gate: selected components grown by 2 px
+  const gate = new Uint8Array(W * H);
+  for (let i = 0; i < W * H; i++) if (keep.has(lab[i])) { const px = i % W, py = (i / W) | 0;
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const xx = px + dx, yy = py + dy; if (xx >= 0 && yy >= 0 && xx < W && yy < H) gate[yy * W + xx] = 1; } }
+  // high-res binary: bilinear field >= k inside the gate
+  const HW = W * UP, HH = H * UP, hb = new Uint8Array(HW * HH);
+  let minx = 1e9, maxx = -1, miny = 1e9, maxy = -1;
+  for (let y = 0; y < HH; y++) for (let x = 0; x < HW; x++) {
+    const sx = (x + 0.5) / UP - 0.5, sy = (y + 0.5) / UP - 0.5, x0 = Math.max(0, Math.min(W - 2, Math.floor(sx))), y0 = Math.max(0, Math.min(H - 2, Math.floor(sy)));
+    const tx = Math.min(1, Math.max(0, sx - x0)), ty = Math.min(1, Math.max(0, sy - y0));
+    const val = f[y0*W+x0]*(1-tx)*(1-ty) + f[y0*W+x0+1]*tx*(1-ty) + f[(y0+1)*W+x0]*(1-tx)*ty + f[(y0+1)*W+x0+1]*tx*ty;
+    const clipOut = (gl[6] || "").includes("c") && (sx < pad - 1 || sx > W - pad);
+    if (!clipOut && val >= L.k && gate[Math.round(sy) * W + Math.round(sx)] ) { hb[y * HW + x] = 1; if (x < minx) minx = x; if (x > maxx) maxx = x; if (y < miny) miny = y; if (y > maxy) maxy = y; }
+  }
+  return { gl, W, H, X0, Y0, HW, HH, hb, minx, maxx, miny, maxy, keepN: keep.size };
+}
+
+// Boundary loops of a binary image (pixel edges, ink on the right in y-down coordinates).
+function loops(hb, W, H) {
+  const out = new Map(), key = (x, y) => y * (W + 1) + x;
+  const add = (x0, y0, x1, y1) => { const k = key(x0, y0); (out.get(k) || out.set(k, []).get(k)).push([x1, y1]); };
+  const at = (x, y) => x >= 0 && y >= 0 && x < W && y < H && hb[y * W + x];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (hb[y * W + x]) {
+    if (!at(x, y - 1)) add(x, y, x + 1, y); if (!at(x + 1, y)) add(x + 1, y, x + 1, y + 1);
+    if (!at(x, y + 1)) add(x + 1, y + 1, x, y + 1); if (!at(x - 1, y)) add(x, y + 1, x, y);
+  }
+  const res = [];
+  for (const [k0, list] of out) while (list.length) {
+    let x = k0 % (W + 1), y = (k0 / (W + 1)) | 0; const pts = [[x, y]]; let [nx, ny] = list.pop();
+    for (let guard = 0; guard < 1e6; guard++) { pts.push([nx, ny]); const l = out.get(key(nx, ny)); if (!l || !l.length) break; [nx, ny] = l.pop(); }
+    if (pts.length > 8) res.push(pts);
+  }
+  return res;
+}
+function smooth(p, it) { for (let t = 0; t < it; t++) { const n = p.length, q = []; for (let i = 0; i < n; i++) { const a = p[(i - 1 + n) % n], b = p[i], c = p[(i + 1) % n]; q.push([(a[0] + 2 * b[0] + c[0]) / 4, (a[1] + 2 * b[1] + c[1]) / 4]); } p = q; } return p; }
+function rdp(p, e) {
+  if (p.length < 4) return p; const keep = new Uint8Array(p.length); keep[0] = keep[p.length - 1] = 1; const st = [[0, p.length - 1]];
+  while (st.length) { const [a, b] = st.pop(); let dm = 0, im = -1; const [ax, ay] = p[a], [bx, by] = p[b], L = Math.hypot(bx - ax, by - ay) || 1;
+    for (let i = a + 1; i < b; i++) { const dd = Math.abs((bx - ax) * (ay - p[i][1]) - (ax - p[i][0]) * (by - ay)) / L; if (dd > dm) { dm = dd; im = i; } }
+    if (dm > e) { keep[im] = 1; st.push([a, im], [im, b]); } }
+  return p.filter((_, i) => keep[i]);
+}
+
+(async () => {
+  const ex = []; for (const gl of G) ex.push(await extract(gl));
+  if (/debug/.test(location.hash)) { await debugSheet(ex); document.title = "debug"; return; }
+  // per line: baseline and x-height from its "x" letters (in page px)
+  const lineInfo = {};
+  for (const e of ex) if ((e.gl[6] || "").includes("x") && e.maxy >= 0) { const li = lineInfo[e.gl[1]] || (lineInfo[e.gl[1]] = { b: [], h: [] });
+    const bot = e.Y0 + (e.maxy + 1) / UP, top = e.Y0 + e.miny / UP; li.b.push(bot); li.h.push(bot - top); }
+  const med = (a) => a.slice().sort((p, q) => p - q)[a.length >> 1];
+  for (const k in lineInfo) { lineInfo[k].base = med(lineInfo[k].b); lineInfo[k].xh = med(lineInfo[k].h); }
+  const glyphs = [new opentype.Glyph({ name: ".notdef", unicode: 0, advanceWidth: 500, path: new opentype.Path() }),
+                  new opentype.Glyph({ name: "space", unicode: 32, advanceWidth: 260, path: new opentype.Path() })];
+  const report = [];
+  for (const e of ex) { const [ch, line] = e.gl; if (!ch) continue; const li = lineInfo[line];
+    if (!li || e.maxx < 0) { report.push(ch + ": MISSING"); continue; }
+    const s = XH / li.xh / UP; // units per hi-res px
+    const path = new opentype.Path();
+    for (let lp of loops(e.hb, e.HW, e.HH)) { lp = rdp(smooth(lp.slice(0, -1), 3).concat([]), 0.9); if (lp.length < 3) continue;
+      lp.forEach(([x, y], i) => { const X = SB + (x - e.minx) * s, Y = (li.base - (e.Y0 + y / UP)) * (XH / li.xh);
+        i ? path.lineTo(Math.round(X), Math.round(Y)) : path.moveTo(Math.round(X), Math.round(Y)); }); path.close(); }
+    const adv = Math.round((e.maxx - e.minx + 1) * s + 2 * SB);
+    glyphs.push(new opentype.Glyph({ name: "g" + ch.codePointAt(0).toString(16), unicode: ch.codePointAt(0), advanceWidth: adv, path }));
+    report.push(ch + " comps=" + e.keepN + " adv=" + adv);
+  }
+  // aliases: Fraktur I/J and U/V share shapes
+  for (const [to, from] of [["U", "V"], ["j", "i"]]) { const s = glyphs.find((g) => g.unicode === from.codePointAt(0)); if (s && !glyphs.some((g) => g.unicode === to.codePointAt(0))) glyphs.push(new opentype.Glyph({ name: "g" + to.codePointAt(0).toString(16), unicode: to.codePointAt(0), advanceWidth: s.advanceWidth, path: s.path })); }
+  const font = new opentype.Font({ familyName: "Meyer 1570", styleName: "Regular", unitsPerEm: UPM, ascender: 900, descender: -280,
+    designer: "traced from Joachim Meyer, Gründtliche Beschreibung (1570)", glyphs });
+  const buf = font.toArrayBuffer();
+  let bin = ""; const u8 = new Uint8Array(buf); for (let i = 0; i < u8.length; i++) bin += String.fromCharCode(u8[i]);
+  const pre = document.createElement("pre"); pre.id = "b64"; pre.style.display = "none"; pre.textContent = btoa(bin); document.body.appendChild(pre);
+  // specimen
+  const ff = new FontFace("Meyer1570", buf); await ff.load(); document.fonts.add(ff);
+  const sp = document.createElement("div"); sp.style.cssText = "font-family:Meyer1570,'Pirata One';padding:8px 14px;line-height:1.05";
+  sp.innerHTML = `<div style="font-size:120px;color:#a3261d">Posta Hut</div>
+    <div style="font-size:64px">The Salle · Hall of Masters</div>
+    <div style="font-size:52px">abcdefghijklmnoprstuvwz ßü .</div>
+    <div style="font-size:52px">ABDEFGHIJKLMOPRSTUVWZ</div>
+    <div style="font-size:44px">Vom Tag · Ochs · Pflug · Alber · Zornhut · Langort · Schlüssel</div>`;
+  document.body.appendChild(sp);
+  const rp = document.createElement("pre"); rp.id = "report"; rp.style.cssText = "font:11px monospace;column-count:4"; rp.textContent = report.join("\n") + "\n" + JSON.stringify(lineInfo, (k, v) => (k === "b" || k === "h") ? undefined : typeof v === "number" ? Math.round(v * 10) / 10 : v); document.body.appendChild(rp);
+  document.title = "built " + glyphs.length;
+})();
+</script>

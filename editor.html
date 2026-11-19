@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guard Editor</title>
+<style>
+  :root { --parch: #efe2c4; --parch-2: #e4d3ad; --ink: #1d1712; --ink-2: #4a3c2c; --red: #a3261d; --gold: #b8892b; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--parch); color: var(--ink); font: 14px/1.35 Georgia, "Times New Roman", serif;
+    display: grid; grid-template-columns: 340px 1fr 300px; height: 100vh; overflow: hidden; }
+  aside, main { overflow-y: auto; }
+  aside { padding: 10px 12px; background: var(--parch-2); border-right: 1px solid #b9a582; }
+  #ref { border-right: 0; border-left: 1px solid #b9a582; }
+  h1 { font-size: 20px; margin: 2px 0 8px; }
+  h2 { font-size: 14px; margin: 0 0 6px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-2); }
+  section { background: rgba(255,250,235,.5); border: 1px solid #c9b48a; border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; }
+  button, select, input[type=text] { font: inherit; }
+  button { padding: 6px 10px; border: 1.5px solid var(--ink); border-radius: 6px; background: #f6efdc; cursor: pointer; }
+  button:hover { background: #fff8e6; }
+  button.on { background: var(--ink); color: var(--parch); }
+  button.primary { background: var(--red); border-color: var(--red); color: #fff; }
+  button:disabled { opacity: .45; cursor: default; }
+  select, input[type=text] { width: 100%; padding: 6px; border: 1px solid var(--ink-2); border-radius: 5px; background: #fffaf0; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .row > button { flex: 1; }
+  .slider { display: grid; grid-template-columns: 96px 1fr 52px; align-items: center; gap: 6px; margin: 3px 0; }
+  .slider label { font-size: 13px; }
+  .slider input { width: 100%; }
+  .slider output { font: 12px Consolas, monospace; text-align: right; }
+  .slider.num { grid-template-columns: 104px 24px 1fr 24px 50px; gap: 4px; }
+  .slider.num label { white-space: nowrap; font-size: 12.5px; }
+  .step { padding: 0; width: 24px; height: 22px; line-height: 18px; font: bold 15px Consolas, monospace; border-radius: 4px; touch-action: none; user-select: none; }
+  .hint { font-size: 12px; color: var(--ink-2); font-style: italic; margin: 4px 0; }
+  main { position: relative; display: flex; flex-direction: column; }
+  #view { flex: 1; min-height: 300px; position: relative; touch-action: none; cursor: crosshair; }
+  #view canvas { display: block; width: 100%; height: 100%; }
+  .viewbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 6px 10px; border-top: 1px solid #c9b48a; background: var(--parch-2); }
+  .viewbar .slider { grid-template-columns: 70px 220px 44px; margin: 0; }
+  #readout { font: 12px/1.4 Consolas, monospace; margin: 0; padding: 6px 10px; background: var(--parch-2); border-top: 1px solid #c9b48a; white-space: pre-wrap; }
+  #readout .bad { color: var(--red); font-weight: bold; }
+  #saved .item { display: flex; gap: 6px; align-items: center; padding: 4px 0; border-top: 1px dotted #b9a582; }
+  #saved .item span { flex: 1; font-size: 13px; }
+  #saved .item small { color: var(--ink-2); display: block; }
+  #saved .item button { padding: 3px 8px; font-size: 12px; }
+  #plate { width: 100%; border: 1px solid #b9a582; }
+  #cite { font-size: 12px; font-style: italic; color: var(--ink-2); }
+  #overlay { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; opacity: .45; display: none; mix-blend-mode: multiply; transform-origin: 50% 50%; }
+  #view.ov-move { cursor: move; }
+  #ov-move.on { background: var(--red); border-color: var(--red); color: #fff; }
+  #myplates .mp { margin: 8px 0; padding: 4px; border: 2px solid transparent; border-radius: 6px; }
+  #myplates .mp.chosen { border-color: var(--red); background: rgba(163,38,29,.06); }
+  #myplates img { width: 100%; border: 1px solid #b9a582; cursor: zoom-in; }
+  #myplates .mp .row { margin: 3px 0; }
+  #myplates .mp small { color: var(--ink-2); font-size: 11px; display: block; overflow-wrap: anywhere; }
+  #ref.drop { outline: 3px dashed var(--red); outline-offset: -6px; }
+  #zoom { position: fixed; inset: 0; background: rgba(29,23,18,.85); display: none; align-items: center; justify-content: center; z-index: 50; cursor: zoom-out; }
+  #zoom img { max-width: 92vw; max-height: 92vh; }
+  #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--ink); color: var(--parch);
+    padding: 8px 14px; border-radius: 6px; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  #toast.show { opacity: 1; }
+  .legend { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin: 0 3px 0 8px; }
+.back-game { display: inline-block; margin: 0 0 6px; font-size: 13px; color: #a3261d; text-decoration: none; }
+.back-game:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<aside id="panel">
+  <a class="back-game" href="index.html">← Back to Posta hut</a>
+  <h1>Guard Editor</h1>
+
+  <section>
+    <h2>Open a guard</h2>
+    <select id="guard"></select>
+    <div class="row"><button id="side-right">Right side</button><button id="side-left">Left side</button></div>
+    <div class="row"><label style="font-weight:bold"><input type="checkbox" id="use-guard"> Use this guard in the game</label></div>
+    <div class="row" style="gap:14px"><label><input type="checkbox" id="use-right"> Right side used</label><label><input type="checkbox" id="use-left"> Left side used</label></div>
+    <p class="hint" id="use-note" style="margin-top:0"></p>
+    <div class="row" id="variants"></div>
+    <div class="row"><button id="reset">Reset to the original</button></div>
+    <div class="row" style="align-items:center"><button class="prev-stance">◀ Previous pose</button><span class="stance-pos" style="font-size:12px;white-space:nowrap"></span><button class="next-stance">Next pose ▶</button></div>
+  </section>
+
+  <!-- Body controls run top to bottom like the body: head, torso, arms & sword, hips & legs, feet. -->
+  <section>
+    <h2>Head</h2>
+    <div id="s-head"></div>
+    <div class="row"><button id="head0">Reset head</button></div>
+  </section>
+
+  <section>
+    <h2>Torso</h2>
+    <div id="s-torso"></div>
+    <div class="row"><button id="mirror">Mirror the whole pose</button></div>
+  </section>
+
+  <section>
+    <h2>Arms &amp; sword</h2>
+    <div class="row"><button id="mode-move" class="on">Drag moves the hilt</button><button id="mode-aim">Drag aims the point</button></div>
+    <p class="hint">Drag on the fencer to place the sword; the arms and body follow. Right-drag (or Alt+drag) turns the camera.</p>
+    <div id="s-sword"></div>
+    <div class="row"><button id="thumb">Thumb grip: turn the crossguard 90°</button><button id="roll0">Normal grip</button></div>
+    <h2 style="margin-top:10px">Elbows</h2>
+    <p class="hint">Swing each elbow around the line from shoulder to hand (0° = automatic). The hand stays on the grip.</p>
+    <div id="s-elbows"></div>
+    <div class="row"><button id="elbows0">Reset elbows</button></div>
+    <p class="hint">Starting direction (the swing is added on top):</p>
+    <div class="slider"><label>Right elbow</label><select id="pole-R"></select><span></span></div>
+    <div class="slider"><label>Left elbow</label><select id="pole-L"></select><span></span></div>
+  </section>
+
+  <section>
+    <h2>Hips &amp; legs</h2>
+    <div id="s-hips"></div>
+    <div id="s-legs"></div>
+    <h2 style="margin-top:10px">Knees</h2>
+    <p class="hint">Knees swing around the line from hip to ankle (0° = automatic); the feet stay planted.</p>
+    <div id="s-knees"></div>
+    <div class="row"><button id="knees0">Reset knees</button></div>
+  </section>
+
+  <section>
+    <h2>Feet</h2>
+    <div class="row"><button id="switch-feet">Switch feet</button></div>
+    <div id="s-feet"></div>
+    <div class="row"><button id="feet0">Reset feet</button></div>
+  </section>
+
+  <section>
+    <h2>Save</h2>
+    <input type="text" id="name" placeholder="Pose name">
+    <div class="slider" style="grid-template-columns: 60px 1fr"><label>Save as</label>
+      <select id="save-as">
+        <option value="replace">Replace this pose in the game</option>
+        <option value="variant">Add as a new variant of this guard</option>
+        <option value="custom">Keep as a custom pose only</option>
+      </select></div>
+    <p class="hint" id="target"></p>
+    <p class="hint" id="ff-note" style="display:none;color:#a3261d">Firefox keeps each page's saved data separate, so the game can't see stances saved here. Use “Download all saved poses” and send me the file to put them in the game.</p>
+    <div class="row"><button id="save" class="primary">Save pose</button></div>
+    <div id="saved"></div>
+    <div class="row"><button id="export">Download all saved poses</button><button id="import">Import a poses file</button></div>
+    <input type="file" id="import-file" accept=".json,application/json" style="display:none">
+    <p class="hint">Saved poses stay in this browser. Reload the game to see your edits there. Send me the downloaded file to make them permanent.</p>
+  </section>
+</aside>
+
+<main>
+  <div id="view"><img id="overlay" alt=""></div>
+  <div class="viewbar">
+    <div class="slider" style="grid-template-columns:62px 24px 200px 24px 44px"><label>Camera</label><button class="step" id="cam-minus" title="−1° (Shift: ×10)">−</button><input type="range" id="cam" min="-180" max="180" step="1"><button class="step" id="cam-plus" title="+1° (Shift: ×10)">+</button><output id="cam-out"></output></div>
+    <button class="prev-stance">◀ Previous pose</button><span class="stance-pos"></span><button class="next-stance">Next pose ▶</button>
+    <button id="undo" title="Ctrl+Z">↶ Undo</button><button id="redo" title="Ctrl+Y">Redo ↷</button>
+    <span id="overlay-ctl" style="display:none"><span class="slider" style="grid-template-columns:62px 120px 40px;display:inline-grid"><label>Overlay</label><input type="range" id="overlay-op" min="0.1" max="0.9" step="0.05" value="0.45"><output id="overlay-out">45%</output></span> <button id="ov-move" title="While on, drag on the view to move the overlay and use the mouse wheel to resize it">Move / resize overlay</button> <button class="step" id="ov-smaller" title="Smaller">−</button><button class="step" id="ov-bigger" title="Bigger">+</button> <button class="step" id="ov-rotl" title="Rotate left 2°">⟲</button><button class="step" id="ov-rotr" title="Rotate right 2°">⟳</button> <button id="ov-flip">Flip</button> <button id="ov-reset">Reset</button> <button id="overlay-off">Hide overlay</button></span>
+    <button id="reframe">Reframe</button>
+    <button id="new-look">New fencer</button>
+    <span class="hint" style="margin:0"><span class="legend" style="background:#d33"></span>hilt <span class="legend" style="background:#2a6fd6"></span>point</span>
+  </div>
+  <pre id="readout"></pre>
+</main>
+
+<aside id="ref">
+  <h2>Plate in use</h2>
+  <img id="plate" alt="">
+  <p class="hint" id="plate-credit" style="margin:2px 0"></p>
+  <div class="row" id="plate-tools"><button id="overlay-plate">Overlay on the view</button></div>
+  <p id="cite"></p>
+  <h2 style="margin-top:14px">Plates for this pose</h2>
+  <div id="myplates"></div>
+  <div class="row"><button id="add-plate">Add an image…</button></div>
+  <p class="hint">Or drag an image onto this panel, or paste one with Ctrl+V. Your plates are kept in this browser for this guard and side; “Use this plate” makes one the plate for the stance, here and in the game in this browser.</p>
+  <div class="row"><button id="export-plates">Download my plates</button></div>
+  <input type="file" id="plate-file" accept="image/*" multiple style="display:none">
+</aside>
+<div id="toast"></div>
+<div id="zoom"><img alt=""></div>
+
+<script src="vendor/three.min.js"></script>
+<script src="data/guards.js"></script>
+<script src="js/pose-edits.js"></script>
+<script src="js/looks.js"></script>
+<script src="js/fencer3d.js"></script>
+<script>
+(function () {
+  const T = THREE, $ = (s) => document.querySelector(s), G = GUARDS, E = PoseEdits;
+  const clone = E.clone;
+  const toast = (msg) => { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 1800); };
+
+  // ---------- state ----------
+  let guard = G[0], side = "right", vi = 0, pose = null, dragMode = "move";
+  const sidesOf = (g) => sidesUsedOf(g); // the sides the game uses (both can still be opened and edited here)
+  const variantsOf = (g) => g.poses || [g.pose];
+  const effectivePose = (g, s, v) => {
+    const base = variantsOf(g)[v];
+    return clone(guardPose(g, s, v));
+  };
+  const originalPose = (g, s, v) => {
+    const o = E.ORIGINAL[g.id];
+    return s === "left" ? clone((o.leftPoses && o.leftPoses[v]) || Fencer3D.mirrorPose(o.poses[v])) : clone(o.poses[v]);
+  };
+
+  // ---------- 3D view ----------
+  const view = $("#view");
+  const fig = Fencer3D.makeFigure(view, "#8e3b3b");
+  const marker = (color) => {
+    const m = new T.Mesh(new T.SphereGeometry(0.035, 16, 10), new T.MeshBasicMaterial({ color, depthTest: false, transparent: true, opacity: 0.85 }));
+    m.renderOrder = 10; fig.scene.add(m); return m;
+  };
+  const hiltMark = marker(0xdd3333), tipMark = marker(0x2a6fd6);
+
+  // ---------- sliders ----------
+  const SLIDERS = {
+    "s-head": [
+      ["Turn L / R", ["headTurn"], -80, 80, 1, "°"], ["Nod up / down", ["headNod"], -45, 45, 1, "°"], ["Lean L / R", ["headLean"], -40, 40, 1, "°"],
+    ],
+    "s-torso": [
+      ["Chest twist", ["twist"], -90, 90, 1, "°"], ["Lean fwd / back", ["lean"], -20, 50, 1, "°"], ["Lean R / L", ["sideLean"], -40, 40, 1, "°"],
+    ],
+    "s-sword": [
+      ["Hilt forward", ["hilt", 0], -0.8, 1.2, 0.01, "m"], ["Hilt height", ["hilt", 1], 0.2, 2.2, 0.01, "m"], ["Hilt side", ["hilt", 2], -0.7, 0.7, 0.01, "m"],
+      ["Blade turn", ["blade", 0], -180, 180, 1, "°"], ["Blade rise", ["blade", 1], -90, 90, 1, "°"],
+      ["Blade roll", ["roll"], -180, 180, 1, "°"],
+    ],
+    "s-elbows": [
+      ["Right elbow", ["elbowR"], -180, 180, 1, "°"], ["Left elbow", ["elbowL"], -180, 180, 1, "°"],
+    ],
+    "s-hips": [
+      ["Hips turn", ["turn"], -90, 90, 1, "°"], ["Weight fwd", ["shift"], -0.25, 0.3, 0.01, "m"], ["Crouch", ["crouch"], 0, 0.4, 0.01, "m"],
+    ],
+    "s-legs": [
+      ["Step length", ["stance"], 0.2, 1.4, 0.01, "m"], ["Feet apart", ["width"], 0.05, 0.6, 0.01, "m"],
+    ],
+    "s-knees": [
+      ["Right knee", ["kneeR"], -90, 90, 1, "°"], ["Left knee", ["kneeL"], -90, 90, 1, "°"],
+    ],
+    "s-feet": [
+      ["Right fwd / back", ["footRFwd"], -0.4, 0.4, 0.01, "m"], ["Right in / out", ["footRSide"], -0.3, 0.3, 0.01, "m"], ["Right foot turn", ["footRTurn"], -60, 90, 1, "°"],
+      ["Left fwd / back", ["footLFwd"], -0.4, 0.4, 0.01, "m"], ["Left in / out", ["footLSide"], -0.3, 0.3, 0.01, "m"], ["Left foot turn", ["footLTurn"], -60, 90, 1, "°"],
+    ],
+  };
+  // −/+ buttons: one step per click (Shift = ×10); holding repeats; one undo step per press
+  function holdRepeat(btn, fn) {
+    let t1 = 0, t2 = 0;
+    const stop = () => { if (!t1 && !t2) return; clearTimeout(t1); clearInterval(t2); t1 = t2 = 0; commit(); };
+    btn.addEventListener("pointerdown", (e) => {
+      e.preventDefault(); const big = e.shiftKey; fn(big);
+      t1 = setTimeout(() => { t2 = setInterval(() => fn(big), 60); }, 400);
+    });
+    ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => btn.addEventListener(ev, stop));
+  }
+  const inputs = [];
+  for (const box in SLIDERS) {
+    for (const [label, path, min, max, step, unit] of SLIDERS[box]) {
+      const row = document.createElement("div"); row.className = "slider";
+      row.className = "slider num";
+      row.innerHTML = `<label>${label}</label><button class="step" title="−${step}${unit} (Shift: ×10, hold to repeat)">−</button><input type="range" min="${min}" max="${max}" step="${step}"><button class="step" title="+${step}${unit} (Shift: ×10, hold to repeat)">+</button><output></output>`;
+      const inp = row.querySelector("input"), out = row.querySelector("output");
+      inp.addEventListener("input", () => { setPath(pose, path, +inp.value); refresh(false); });
+      inp.addEventListener("change", () => commit()); // one undo step per slider release
+      const [minus, plus] = row.querySelectorAll(".step");
+      const nudge = (dir, big) => {
+        const v = Math.min(max, Math.max(min, +((getPath(pose, path) ?? 0) + dir * step * (big ? 10 : 1)).toFixed(4)));
+        setPath(pose, path, v); refresh(false);
+      };
+      holdRepeat(minus, (big) => nudge(-1, big)); holdRepeat(plus, (big) => nudge(1, big));
+      inputs.push({ inp, out, path, unit, step });
+      $("#" + box).appendChild(row);
+    }
+  }
+  const getPath = (o, p) => p.reduce((a, k) => (a == null ? a : a[k]), o);
+  const setPath = (o, p, v) => { if (p.length === 1) o[p[0]] = v; else o[p[0]][p[1]] = v; };
+  function syncSliders() {
+    for (const s of inputs) {
+      const v = getPath(pose, s.path) ?? 0;
+      s.inp.value = v;
+      s.out.textContent = (s.step < 1 ? (+v).toFixed(2) : Math.round(v)) + s.unit;
+    }
+  }
+
+  // ---------- elbows ----------
+  const POLES = {
+    auto: null, forward: [1, -0.3, 0], down: [0, -1, 0], up: [0.2, 1, 0], back: [-1, -0.3, 0],
+    out: "out", in: "in",
+  };
+  for (const k of ["R", "L"]) {
+    const sel = $("#pole-" + k);
+    for (const name of Object.keys(POLES)) { const o = document.createElement("option"); o.value = name; o.textContent = name[0].toUpperCase() + name.slice(1); sel.appendChild(o); }
+    sel.addEventListener("change", () => {
+      const v = POLES[sel.value], key = "pole" + k;
+      if (!v) delete pose[key];
+      else if (v === "out" || v === "in") pose[key] = [0, -0.3, ((k === "R") === (v === "out") ? 1 : -1)];
+      else pose[key] = v.slice();
+      refresh(false); commit();
+    });
+  }
+  function syncPoles() {
+    for (const k of ["R", "L"]) {
+      const p = pose["pole" + k];
+      let name = "auto";
+      if (p) {
+        name = Object.keys(POLES).find((n) => Array.isArray(POLES[n]) && POLES[n].every((x, i) => Math.abs(x - p[i]) < 1e-6)) || "";
+        if (!name) name = Math.abs(p[2]) > 0.6 ? ((p[2] > 0) === (k === "R") ? "out" : "in") : p[0] > 0.5 ? "forward" : p[1] < -0.7 ? "down" : "auto";
+      }
+      $("#pole-" + k).value = name;
+    }
+  }
+
+  // ---------- render + readout ----------
+  function refresh(reframe) {
+    fig.set(pose, { frame: !!reframe });
+    const s = Fencer3D.solve(pose), B = Fencer3D.B;
+    hiltMark.position.copy(s.H);
+    tipMark.position.copy(s.H.clone().addScaledVector(s.d, B.blade));
+    fig.render();
+    syncSliders(); syncPoles();
+    // readout
+    const ang = (a, j, b) => Math.round(a.clone().sub(j).angleTo(b.clone().sub(j)) * 180 / Math.PI);
+    const gapCm = (want, got) => Math.round(want.distanceTo(got) * 100);
+    const deg = (v) => Math.round(Math.atan2(v.z, v.x) * 180 / Math.PI);
+    const hR = s.H.clone().addScaledVector(s.d, -B.handA), hL = s.H.clone().addScaledVector(s.d, -B.handB);
+    const gR = gapCm(hR, s.armR.end), gL = gapCm(hL, s.armL.end);
+    const bad = (g) => (g > 1 ? `<span class="bad">${g} cm — out of reach</span>` : `${g} cm`);
+    $("#readout").innerHTML =
+      `elbows  R ${ang(s.shR, s.armR.joint, s.armR.end)}°  L ${ang(s.shL, s.armL.joint, s.armL.end)}°   (180 = straight)\n` +
+      `hands off the grip  R ${bad(gR)}  L ${bad(gL)}\n` +
+      `knees  L ${ang(s.hipL, s.legL.joint, s.legL.end)}°  R ${ang(s.hipR, s.legR.joint, s.legR.end)}°   ·   ` +
+      `hips face ${deg(s.hipFwd)}°, chest faces ${deg(s.fwd)}°   ·   ${pose.lead === "right" ? "right" : "left"} foot forward`;
+    $("#switch-feet").textContent = `Switch feet (now ${pose.lead === "right" ? "right" : "left"} foot forward)`;
+  }
+
+  // ---------- undo / redo (Ctrl+Z, Ctrl+Y / Ctrl+Shift+Z) ----------
+  // Each finished action (slider release, drag, button, elbow choice) is one step.
+  // Opening another guard starts a fresh history.
+  let undoStack = [], redoStack = [], committed = null;
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  function resetHistory() { undoStack = []; redoStack = []; committed = clone(pose); updateUndoButtons(); }
+  function commit() {
+    if (committed && !same(committed, pose)) {
+      undoStack.push(committed);
+      if (undoStack.length > 200) undoStack.shift();
+      redoStack = [];
+    }
+    committed = clone(pose);
+    updateUndoButtons();
+  }
+  function undo() {
+    if (committed && !same(committed, pose)) commit(); // finish anything in progress first
+    if (!undoStack.length) { toast("Nothing to undo"); return; }
+    redoStack.push(clone(pose));
+    pose = undoStack.pop(); committed = clone(pose);
+    refresh(false); updateUndoButtons();
+  }
+  function redo() {
+    if (!redoStack.length) { toast("Nothing to redo"); return; }
+    undoStack.push(clone(pose));
+    pose = redoStack.pop(); committed = clone(pose);
+    refresh(false); updateUndoButtons();
+  }
+  function updateUndoButtons() {
+    $("#undo").disabled = !undoStack.length; $("#redo").disabled = !redoStack.length;
+    $("#undo").title = `Ctrl+Z (${undoStack.length} step${undoStack.length === 1 ? "" : "s"})`;
+    $("#redo").title = `Ctrl+Y (${redoStack.length} step${redoStack.length === 1 ? "" : "s"})`;
+  }
+  $("#undo").onclick = undo; $("#redo").onclick = redo;
+  document.addEventListener("keydown", (ev) => {
+    if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
+    if (ev.target.matches && ev.target.matches('input[type="text"], textarea')) return; // normal text undo in the name box
+    const k = ev.key.toLowerCase();
+    if (k === "z" && !ev.shiftKey) { ev.preventDefault(); undo(); }
+    else if (k === "y" || (k === "z" && ev.shiftKey)) { ev.preventDefault(); redo(); }
+  });
+
+  // ---------- camera ----------
+  const cam = $("#cam");
+  function setCam(v) {
+    v = ((Math.round(v) + 540) % 360) - 180;
+    cam.value = v; $("#cam-out").textContent = v + "°";
+    fig.setView(v); refresh(false);
+  }
+  cam.addEventListener("input", () => setCam(+cam.value));
+  for (const [id, dir] of [["#cam-minus", -1], ["#cam-plus", 1]]) {
+    let t1 = 0, t2 = 0; const b = $(id), stop = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = 0; };
+    b.addEventListener("pointerdown", (e) => { e.preventDefault(); const k = e.shiftKey ? 10 : 1; setCam(+cam.value + dir * k); t1 = setTimeout(() => { t2 = setInterval(() => setCam(+cam.value + dir * k), 60); }, 400); });
+    ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => b.addEventListener(ev, stop));
+  }
+  $("#reframe").onclick = () => refresh(true);
+  $("#new-look").onclick = () => { fig.setLook(Looks.randomLook(guard.tradition)); refresh(false); };
+
+  // ---------- dragging the sword ----------
+  const ray = new T.Raycaster(), ndc = new T.Vector2();
+  let drag = null;
+  function pointOnPlane(ev, through) {
+    const r = fig.canvas.getBoundingClientRect();
+    ndc.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, fig.camera);
+    const n = new T.Vector3(); fig.camera.getWorldDirection(n);
+    const plane = new T.Plane().setFromNormalAndCoplanarPoint(n, through);
+    const out = new T.Vector3();
+    return ray.ray.intersectPlane(plane, out) ? out : null;
+  }
+  view.addEventListener("contextmenu", (e) => e.preventDefault());
+  view.addEventListener("pointerdown", (ev) => {
+    view.setPointerCapture(ev.pointerId);
+    if (ev.button === 2 || ev.altKey) { drag = { kind: "orbit", x: ev.clientX, v: +cam.value }; return; }
+    if (ovMove && $("#overlay").style.display === "block") { drag = { kind: "overlay", x: ev.clientX, y: ev.clientY, ox: ov.x, oy: ov.y }; return; }
+    const H = new T.Vector3(...pose.hilt);
+    const p = pointOnPlane(ev, H);
+    if (!p) return;
+    drag = { kind: dragMode, offset: H.clone().sub(p) };
+    if (dragMode === "aim") aimAt(p);
+  });
+  view.addEventListener("pointermove", (ev) => {
+    if (!drag) return;
+    if (drag.kind === "orbit") { setCam(drag.v + (ev.clientX - drag.x) * 0.5); return; }
+    if (drag.kind === "overlay") { ov.x = drag.ox + ev.clientX - drag.x; ov.y = drag.oy + ev.clientY - drag.y; applyOverlay(); return; }
+    const H = new T.Vector3(...pose.hilt);
+    const p = pointOnPlane(ev, H);
+    if (!p) return;
+    if (drag.kind === "move") {
+      const n = p.add(drag.offset);
+      pose.hilt = [clamp(n.x, -0.8, 1.2), clamp(n.y, 0.2, 2.2), clamp(n.z, -0.7, 0.7)].map((x) => +x.toFixed(3));
+    } else aimAt(p);
+    refresh(false);
+  });
+  const endDrag = () => { if (drag && drag.kind !== "orbit" && drag.kind !== "overlay") commit(); drag = null; };
+  view.addEventListener("pointerup", endDrag); view.addEventListener("pointercancel", endDrag);
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  function aimAt(p) {
+    const d = p.clone().sub(new T.Vector3(...pose.hilt));
+    if (d.lengthSq() < 1e-4) return;
+    d.normalize();
+    pose.blade = [Math.round(Math.atan2(d.z, d.x) * 180 / Math.PI), Math.round(Math.asin(clamp(d.y, -1, 1)) * 180 / Math.PI)];
+  }
+  $("#mode-move").onclick = () => { dragMode = "move"; $("#mode-move").classList.add("on"); $("#mode-aim").classList.remove("on"); };
+  $("#mode-aim").onclick = () => { dragMode = "aim"; $("#mode-aim").classList.add("on"); $("#mode-move").classList.remove("on"); };
+
+  // ---------- body buttons ----------
+  $("#thumb").onclick = () => { pose.roll = ((pose.roll || 0) === 90 ? -90 : 90); refresh(false); commit(); toast("Crossguard turned 90° (" + pose.roll + "°)"); };
+  $("#roll0").onclick = () => { delete pose.roll; refresh(false); commit(); };
+  $("#head0").onclick = () => { delete pose.headTurn; delete pose.headNod; delete pose.headLean; refresh(false); commit(); };
+  $("#feet0").onclick = () => { for (const k of ["footLFwd", "footLSide", "footLTurn", "footRFwd", "footRSide", "footRTurn"]) delete pose[k]; refresh(false); commit(); };
+  $("#knees0").onclick = () => { delete pose.kneeL; delete pose.kneeR; refresh(false); commit(); };
+  $("#elbows0").onclick = () => { delete pose.elbowR; delete pose.elbowL; delete pose.poleR; delete pose.poleL; refresh(false); commit(); };
+  $("#switch-feet").onclick = () => { pose.lead = pose.lead === "right" ? "left" : "right"; refresh(false); commit(); };
+  $("#mirror").onclick = () => { pose = Fencer3D.mirrorPose(pose); setCam(180 - +cam.value); refresh(true); commit(); toast("Pose mirrored"); };
+
+  // ---------- opening guards ----------
+  const sel = $("#guard");
+  for (const g of G) { const o = document.createElement("option"); o.value = g.id; o.textContent = `${g.name}  (${g.master})`; sel.appendChild(o); }
+  sel.addEventListener("change", () => open(G.find((g) => g.id === sel.value), "right", 0));
+  $("#side-right").onclick = () => open(guard, "right", vi);
+  $("#side-left").onclick = () => open(guard, "left", vi);
+  $("#reset").onclick = () => { pose = originalPose(guard, side, vi); refresh(true); commit(); toast("Back to the original pose (not saved yet)"); };
+
+  function targetLabel() { return `${guard.name} — ${side} side${variantsOf(guard).length > 1 ? ", variant " + (vi + 1) : ""}`; }
+  // ---------- previous / next stance: every guard, variant and side in order ----------
+  let loaded = null; // the pose as opened, to warn about unsaved changes
+  let STANCES = [];
+  function buildStances() { STANCES = []; for (const g of G) variantsOf(g).forEach((_, v) => sidesOf(g).forEach((s) => STANCES.push([g, s, v]))); }
+  buildStances();
+  const stanceIndex = () => STANCES.findIndex(([g, s, v]) => g === guard && s === side && v === vi);
+  function stepStance(dir) {
+    if (loaded && JSON.stringify(loaded) !== JSON.stringify(pose) && !confirm("This pose has unsaved changes. Leave it anyway?")) return;
+    const i = stanceIndex(), n = STANCES.length;
+    // if the open side is switched off, continue from this guard's first used stance
+    const from = i >= 0 ? i + dir : Math.max(0, STANCES.findIndex(([g]) => g === guard)) + (dir > 0 ? 0 : -1);
+    const [g, s, v] = STANCES[(from % n + n) % n];
+    open(g, s, v);
+  }
+  function updateStanceNav() {
+    const i = stanceIndex();
+    document.querySelectorAll(".stance-pos").forEach((el) => (el.textContent = `${i + 1} / ${STANCES.length}`));
+  }
+  document.querySelectorAll(".prev-stance").forEach((b) => (b.onclick = () => stepStance(-1)));
+  document.querySelectorAll(".next-stance").forEach((b) => (b.onclick = () => stepStance(1)));
+
+  // ---------- which sides are used ----------
+  function syncSideUse() {
+    const used = sidesOf(guard);
+    $("#use-right").checked = used.includes("right"); $("#use-left").checked = used.includes("left");
+    $("#use-guard").checked = !guard.unused;
+    $("#use-right").disabled = $("#use-left").disabled = !!guard.unused;
+    $("#use-note").textContent = guard.unused ? "This guard is not used in the game; it can still be edited here."
+      : used.includes(side) ? "" : `The ${side} side is switched off: the game never asks it.`;
+  }
+  function setSideUse(which, on) {
+    const next = { right: $("#use-right").checked, left: $("#use-left").checked };
+    if (!next.right && !next.left) { toast("At least one side has to be used"); syncSideUse(); return; }
+    guard.sideUse = next;
+    if (next.left && !(guard.sides && guard.sides.left)) guard.sides = Object.assign(guard.sides || {}, { left: {} });
+    const all = E.read(), name = "Sides used: " + guard.name;
+    for (const k in all) if (all[k] && all[k].kind === "sides" && all[k].guard === guard.id) delete all[k];
+    all[name] = { kind: "sides", guard: guard.id, right: next.right, left: next.left, saved: new Date().toISOString() };
+    if (!E.write(all)) { toast("Couldn’t save — browser storage is unavailable"); return; }
+    buildStances(); updateStanceNav(); syncSideUse(); renderSaved();
+    toast(`${guard.name}: ${which} side ${on ? "used" : "switched off"} — reload the game to apply`);
+  }
+  // whole guard on/off: an unused guard is never asked, offered as an answer, or shown in the game
+  $("#use-guard").addEventListener("change", () => {
+    const used = $("#use-guard").checked;
+    guard.unused = !used;
+    const all = E.read(), name = "Used in the game: " + guard.name;
+    for (const k in all) if (all[k] && all[k].kind === "use" && all[k].guard === guard.id) delete all[k];
+    all[name] = { kind: "use", guard: guard.id, used, saved: new Date().toISOString() };
+    if (!E.write(all)) { toast("Couldn’t save — browser storage is unavailable"); return; }
+    syncSideUse(); renderSaved();
+    toast(`${guard.name} ${used ? "is used" : "is no longer used"} in the game — reload the game to apply`);
+  });
+  $("#use-right").addEventListener("change", () => setSideUse("right", $("#use-right").checked));
+  $("#use-left").addEventListener("change", () => setSideUse("left", $("#use-left").checked));
+
+  function open(g, s, v) {
+    guard = g; side = s === "left" ? "left" : "right"; vi = Math.min(v, variantsOf(g).length - 1);
+    sel.value = g.id;
+    pose = effectivePose(guard, side, vi);
+    syncSideUse();
+    $("#side-right").classList.toggle("on", side === "right"); $("#side-left").classList.toggle("on", side === "left");
+    const vb = $("#variants"); vb.innerHTML = "";
+    if (variantsOf(g).length > 1) variantsOf(g).forEach((_, i) => {
+      const b = document.createElement("button"); b.textContent = "Variant " + (i + 1); b.classList.toggle("on", i === vi);
+      b.onclick = () => open(guard, side, i); vb.appendChild(b);
+    });
+    // left variants beyond the first always mirror their right-side variant, so they can't be saved separately
+    const canUse = true; // every side and variant can be replaced (left versions get their own pose)
+    const sa = $("#save-as");
+    sa.querySelector('[value="replace"]').disabled = !canUse;
+    sa.value = canUse ? "replace" : "variant";
+    updateTarget();
+    $("#name").value = `${g.name} (${side})${variantsOf(g).length > 1 ? " v" + (vi + 1) : ""}`;
+    fig.setLook(Looks.randomLook(g.tradition));
+    const yaw = pose.view != null ? pose.view : 25;
+    setCam(side === "left" ? 180 - yaw : yaw);
+    refresh(true);
+    resetHistory(); loaded = clone(pose); updateStanceNav();
+    // source plate
+    hideOverlay(); renderPlates(); // the plate in use: built-in or one of yours (see "plates" below)
+    const ref = side === "left" ? ((g.sides && g.sides.left && g.sides.left.plate) || (g.plate ? g.plate + " — right-side plate shown; this left version is its mirror" : "left version mirrored from the right")) : g.plate;
+    $("#cite").textContent = `${g.source}${ref ? ", " + ref : ""}. ${g.tip}`;
+  }
+
+  // ---------- saving ----------
+  const origCount = (g) => E.ORIGINAL[g.id].poses.length;
+  // If the open variant was itself added from a saved stance, "replace" updates that saved stance.
+  const addedEntryName = () => (side === "right" && vi >= origCount(guard) ? (guard.addedVariantNames || [])[vi - origCount(guard)] : null);
+  function updateTarget() {
+    const mode = $("#save-as").value;
+    $("#target").textContent =
+      mode === "replace" ? `Replaces ${targetLabel()} wherever the game uses it.`
+      : mode === "variant" ? `Adds another way of holding ${guard.name}; each question picks one of its variants (left versions mirror it).`
+      : "Saved for reference only; the game doesn't use it.";
+  }
+  $("#save-as").addEventListener("change", updateTarget);
+  if (/Firefox\//.test(navigator.userAgent)) $("#ff-note").style.display = "";
+
+  function renderSaved() {
+    const all = E.read(), box = $("#saved"); box.innerHTML = "";
+    const names = Object.keys(all).sort((a, b) => (all[b].saved || "").localeCompare(all[a].saved || ""));
+    if (!names.length) { box.innerHTML = '<p class="hint">No saved poses yet.</p>'; return; }
+    for (const name of names) {
+      const e = all[name], g = e.guard && G.find((x) => x.id === e.guard);
+      const it = document.createElement("div"); it.className = "item";
+      const label = document.createElement("span");
+      label.textContent = name;
+      const small = document.createElement("small");
+      small.textContent = e.kind === "use" ? (e.used ? "used in the game" : "not used in the game")
+        : e.kind === "sides" ? `sides used: ${[e.right && "right", e.left && "left"].filter(Boolean).join(" & ")}`
+        : !g ? "custom pose"
+        : e.addVariant ? `new variant of ${g.name}`
+        : `replaces ${g.name} (${e.side}${e.vi ? ", variant " + (e.vi + 1) : ""})`;
+      label.appendChild(small);
+      const load = document.createElement("button"); load.textContent = "Open";
+      load.onclick = () => {
+        if (e.kind === "sides" || e.kind === "use") { if (g) open(g, side, 0); return; }
+        if (g && e.addVariant) {
+          const i = (g.addedVariantNames || []).indexOf(name);
+          open(g, "right", i >= 0 ? origCount(g) + i : 0);
+        } else if (g) open(g, e.side, e.vi || 0);
+        pose = clone(e.pose); $("#name").value = name; refresh(true); commit(); toast("Opened “" + name + "”");
+      };
+      const del = document.createElement("button"); del.textContent = "Delete";
+      del.onclick = () => {
+        if (!confirm(`Delete “${name}”?` + (g ? ` ${g.name} goes back to its original pose in the game.` : ""))) return;
+        const a = E.read(); delete a[name]; E.write(a); renderSaved(); toast("Deleted");
+      };
+      it.append(label, load, del); box.appendChild(it);
+    }
+  }
+  $("#save").onclick = () => {
+    const name = $("#name").value.trim();
+    if (!name) { toast("Give the pose a name first"); $("#name").focus(); return; }
+    const all = E.read(), mode = $("#save-as").value, now = new Date().toISOString();
+    const added = addedEntryName();
+    if (all[name] && name !== added && !confirm(`“${name}” already exists. Replace it?`)) return;
+    let reopen = null;
+    if (mode === "replace" && added) {
+      // updating a variant that was added from a saved stance: rewrite that entry (renamed if the name changed)
+      const old = all[added]; delete all[added];
+      all[name] = Object.assign({}, old, { pose: clone(pose), saved: old.saved || now, edited: now });
+    } else if (mode === "replace") {
+      for (const k in all) { const e = all[k]; if (!e.addVariant && e.guard === guard.id && e.side === side && (e.vi || 0) === vi && k !== name) delete all[k]; }
+      all[name] = { pose: clone(pose), guard: guard.id, side, vi, saved: now };
+    } else if (mode === "variant") {
+      // variants are stored as right-side poses; a left-side edit is mirrored back
+      all[name] = { pose: side === "left" ? Fencer3D.mirrorPose(pose) : clone(pose), guard: guard.id, side: "right", addVariant: true, saved: now };
+      reopen = guard.id + "&v" + ((guard.poses || [guard.pose]).length);
+    } else {
+      all[name] = { pose: clone(pose), guard: null, side, vi, saved: now };
+    }
+    if (!E.write(all)) { toast("Couldn't save — browser storage is unavailable. Use Download instead."); return; }
+    if (reopen) { location.hash = reopen; location.reload(); return; } // reload so the new variant appears in the list
+    loaded = clone(pose); // saved: no longer "unsaved changes"
+    renderSaved();
+    toast(mode === "custom" ? "Saved" : `Saved — reload the game to see ${guard.name} updated`);
+  };
+  // Import a downloaded stances file (e.g. from another browser). Same-named stances are replaced.
+  $("#import").onclick = () => $("#import-file").click();
+  $("#import-file").addEventListener("change", async () => {
+    const f = $("#import-file").files[0]; $("#import-file").value = "";
+    if (!f) return;
+    let data;
+    try { data = JSON.parse(await f.text()); } catch (e) { toast("That file isn’t a poses file"); return; }
+    const names = Object.keys(data || {}).filter((k) => data[k] && ((data[k].pose && Array.isArray(data[k].pose.hilt)) || data[k].kind === "sides" || data[k].kind === "use"));
+    if (!names.length) { toast("No poses found in that file"); return; }
+    const all = E.read(), clash = names.filter((k) => all[k]);
+    if (clash.length && !confirm(`${clash.length} stance(s) already exist and will be replaced:
+${clash.join(", ")}`)) return;
+    for (const k of names) all[k] = data[k];
+    if (!E.write(all)) { toast("Couldn’t save — browser storage is unavailable"); return; }
+    toast(`Imported ${names.length} stance(s) — reloading`);
+    setTimeout(() => location.reload(), 800);
+  });
+  $("#export").onclick = () => {
+    const blob = new Blob([JSON.stringify(E.read(), null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "stance-off-poses.json";
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  // ---------- self-test hook (editor.html#pflug&selftest): edit, save, report ----------
+  if (location.hash.includes("selftest")) setTimeout(() => {
+    pose.hilt = [0.1, 1.5, 0.2]; $("#name").value = "Test VT v3"; $("#save-as").value = "variant"; window.confirm = () => true; $("#save").click();
+    document.title = "saved=" + JSON.stringify(E.read()["Test VT v3"] && E.read()["Test VT v3"].addVariant);
+  }, 300);
+
+  // ---------- plates: built-in + your own, choose which one is used ----------
+  // Your images live in this browser (localStorage "so.userPlates", per guard|side; downscaled JPEGs).
+  // The plate in use per guard|side is "so.plateChoice": "builtin", "none" or one of your plate ids.
+  // js/pose-edits.js applies the choice, so the game (in this browser) uses it too.
+  const PKEY = "so.userPlates", CKEY = "so.plateChoice";
+  const readJ = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}") || {}; } catch (e) { return {}; } };
+  const writeJ = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } };
+  const readPlates = () => readJ(PKEY), writePlates = (v) => writeJ(PKEY, v);
+  const plateKey = () => guard.id + "|" + side;
+  const pid = (p) => p.id || p.added; // older images have no id; their date is unique enough
+  // the built-in plate for this guard/side (a mirrored left side shows the right-side plate)
+  function builtin() {
+    const o = E.ORIGINAL[guard.id];
+    const vp = side === "right" && vi && guard.variantPlates && guard.variantPlates[vi];
+    if (vp) return { src: vp.src, name: "Built-in plate (" + vp.plate + ")", credit: o.manuscript && o.manuscript.credit };
+    if (side === "left" && o.leftManuscript) return { src: o.leftManuscript.src, name: "Built-in plate", credit: o.leftManuscript.credit };
+    if (o.manuscript) return { src: o.manuscript.src, name: side === "left" ? "Built-in plate (right side — this left version is its mirror)" : "Built-in plate", credit: o.manuscript.credit };
+    return null;
+  }
+  function choiceNow() {
+    const c = readJ(CKEY)[plateKey()], list = readPlates()[plateKey()] || [];
+    if (c === "none" || c === "builtin" || list.some((p) => pid(p) === c)) return c === "builtin" && !builtin() ? "none" : c;
+    return builtin() ? "builtin" : list.length ? pid(list[0]) : "none";
+  }
+  function plateInUse() {
+    const c = choiceNow();
+    if (c === "none") return null;
+    if (c === "builtin") return builtin();
+    const p = (readPlates()[plateKey()] || []).find((x) => pid(x) === c);
+    return p ? { src: p.src, name: p.name, credit: "Your plate" + (p.name ? " (" + p.name + ")" : "") } : null;
+  }
+  function choose(c) {
+    const all = readJ(CKEY); all[plateKey()] = c;
+    if (!writeJ(CKEY, all)) { toast("Couldn’t save — browser storage is unavailable"); return; }
+    // keep this page's guard data in step (the game picks it up on reload via js/pose-edits.js)
+    const m = plateInUse(), md = m ? { src: m.src, credit: m.credit, player: c !== "builtin" } : undefined;
+    if (side === "left") { if (!guard.sides || !guard.sides.left) guard.sideUse = guard.sideUse || { right: true, left: false }; guard.sides = guard.sides || {}; guard.sides.left = guard.sides.left || {}; guard.sides.left.manuscript = md; }
+    else guard.manuscript = md;
+    renderPlates(); toast(c === "none" ? "No plate for this pose" : "Plate chosen — reload the game to see it there");
+  }
+  function renderPlates() {
+    const inUse = plateInUse(), plate = $("#plate");
+    if (inUse) { plate.src = inUse.src; plate.style.display = ""; } else { plate.removeAttribute("src"); plate.style.display = "none"; }
+    $("#plate-tools").style.display = inUse ? "" : "none";
+    $("#plate-credit").textContent = inUse ? "In use: " + (inUse.credit || inUse.name) : "No plate in use for this pose.";
+    const box = $("#myplates"), c = choiceNow(), b = builtin(), list = readPlates()[plateKey()] || [];
+    box.innerHTML = "";
+    const item = (id, src, name, removable, i) => {
+      const d = document.createElement("div"); d.className = "mp" + (id === c ? " chosen" : "");
+      if (src) { const img = new Image(); img.src = src; img.alt = name; img.onclick = () => zoom(src); d.appendChild(img); }
+      const cap = document.createElement("small"); cap.textContent = name; d.appendChild(cap);
+      const row = document.createElement("div"); row.className = "row";
+      const use = document.createElement("button"); use.textContent = id === c ? "✓ In use" : "Use this plate"; use.className = id === c ? "on" : ""; use.onclick = () => choose(id);
+      row.appendChild(use);
+      if (src) { const ov = document.createElement("button"); ov.textContent = "Overlay"; ov.onclick = () => showOverlay(src); row.appendChild(ov); }
+      if (removable) {
+        const rm = document.createElement("button"); rm.textContent = "Remove";
+        rm.onclick = () => {
+          if (!confirm("Remove this plate?")) return;
+          const all = readPlates(); all[plateKey()].splice(i, 1);
+          if (!all[plateKey()].length) delete all[plateKey()];
+          writePlates(all);
+          if (id === c) choose(builtin() ? "builtin" : "none"); else renderPlates();
+        };
+        row.appendChild(rm);
+      }
+      d.appendChild(row); box.appendChild(d);
+    };
+    if (b) item("builtin", b.src, b.name, false);
+    list.forEach((p, i) => item(pid(p), p.src, p.name || "your plate", true, i));
+    item("none", null, "No plate", false);
+  }
+  function addImageFile(file) {
+    if (!file || !/^image\//.test(file.type)) { toast("That isn’t an image"); return; }
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, 900 / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      const now = new Date().toISOString(), id = "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      const all = readPlates(); (all[plateKey()] = all[plateKey()] || []).push({ id, src: c.toDataURL("image/jpeg", 0.82), name: file.name || "pasted image", added: now });
+      if (!writePlates(all)) { toast("Browser storage is full — remove some plates first"); return; }
+      // a stance with no plate yet starts using the new one straight away
+      if (!builtin() && !readJ(CKEY)[plateKey()]) choose(id);
+      else { renderPlates(); toast("Plate added to " + guard.name + " (" + side + ") — press “Use this plate” to use it"); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); toast("Couldn’t read that image"); };
+    img.src = url;
+  }
+  $("#export-plates").onclick = () => {
+    const blob = new Blob([JSON.stringify({ plates: readPlates(), choice: readJ(CKEY) })], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "stance-off-plates.json";
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  $("#add-plate").onclick = () => $("#plate-file").click();
+  $("#plate-file").addEventListener("change", () => { [...$("#plate-file").files].forEach(addImageFile); $("#plate-file").value = ""; });
+  const refPanel = $("#ref");
+  refPanel.addEventListener("dragover", (e) => { e.preventDefault(); refPanel.classList.add("drop"); });
+  refPanel.addEventListener("dragleave", () => refPanel.classList.remove("drop"));
+  refPanel.addEventListener("drop", (e) => { e.preventDefault(); refPanel.classList.remove("drop"); [...e.dataTransfer.files].forEach(addImageFile); });
+  document.addEventListener("paste", (e) => {
+    if (e.target.matches && e.target.matches('input[type="text"], textarea')) return;
+    const items = [...(e.clipboardData ? e.clipboardData.items : [])].filter((it) => it.type.startsWith("image/"));
+    if (!items.length) return;
+    e.preventDefault(); items.forEach((it) => addImageFile(it.getAsFile()));
+  });
+
+  // overlay any plate over the 3D view, to match the pose against it
+  // overlay placement: offset (px), size, rotation and mirror; reset whenever a new image is overlaid
+  let ov = { x: 0, y: 0, s: 1, r: 0, flip: false }, ovMove = false;
+  function applyOverlay() { $("#overlay").style.transform = `translate(${ov.x}px, ${ov.y}px) rotate(${ov.r}deg) scale(${ov.flip ? -ov.s : ov.s}, ${ov.s})`; }
+  function setOvMove(on) { ovMove = on; $("#ov-move").classList.toggle("on", on); view.classList.toggle("ov-move", on); }
+  $("#ov-move").onclick = () => setOvMove(!ovMove);
+  $("#ov-smaller").onclick = (e) => { ov.s = Math.max(0.1, ov.s / (e.shiftKey ? 1.25 : 1.05)); applyOverlay(); };
+  $("#ov-bigger").onclick = (e) => { ov.s = Math.min(8, ov.s * (e.shiftKey ? 1.25 : 1.05)); applyOverlay(); };
+  $("#ov-rotl").onclick = (e) => { ov.r -= e.shiftKey ? 10 : 2; applyOverlay(); };
+  $("#ov-rotr").onclick = (e) => { ov.r += e.shiftKey ? 10 : 2; applyOverlay(); };
+  $("#ov-flip").onclick = () => { ov.flip = !ov.flip; applyOverlay(); };
+  $("#ov-reset").onclick = () => { ov = { x: 0, y: 0, s: 1, r: 0, flip: false }; applyOverlay(); };
+  view.addEventListener("wheel", (e) => {
+    if (!ovMove || $("#overlay").style.display !== "block") return;
+    e.preventDefault(); ov.s = Math.min(8, Math.max(0.1, ov.s * (e.deltaY < 0 ? 1.06 : 1 / 1.06))); applyOverlay();
+  }, { passive: false });
+
+  function showOverlay(src) {
+    ov = { x: 0, y: 0, s: 1, r: 0, flip: false }; applyOverlay();
+    const o = $("#overlay"); o.src = src; o.style.display = "block"; o.style.opacity = $("#overlay-op").value;
+    $("#overlay-ctl").style.display = "";
+  }
+  function hideOverlay() { $("#overlay").style.display = "none"; $("#overlay-ctl").style.display = "none"; setOvMove(false); }
+  $("#overlay-plate").onclick = () => { const p = $("#plate"); if (p.src) showOverlay(p.src); };
+  $("#overlay-off").onclick = hideOverlay;
+  $("#overlay-op").addEventListener("input", () => { $("#overlay").style.opacity = $("#overlay-op").value; $("#overlay-out").textContent = Math.round($("#overlay-op").value * 100) + "%"; });
+  function zoom(src) { const z = $("#zoom"); z.querySelector("img").src = src; z.style.display = "flex"; }
+  $("#zoom").onclick = () => ($("#zoom").style.display = "none");
+  $("#plate").addEventListener("click", () => { if ($("#plate").src) zoom($("#plate").src); });
+
+  // ---------- start ----------
+  const start = location.hash.slice(1).split("&");
+  const startV = +((start.find((s) => /^v\d+$/.test(s)) || "v0").slice(1));
+  open(G.find((g) => g.id === start[0]) || G[0], start.includes("left") ? "left" : "right", startV);
+  if (start.includes("roll90")) { pose.roll = 90; refresh(false); } // test hook
+  if (start.includes("elbow60")) { pose.elbowR = 60; pose.elbowL = -60; refresh(false); } // test hook
+  if (start.includes("side25")) { pose.sideLean = 25; refresh(false); } // test hook
+  if (start.includes("platetest")) setTimeout(() => { // test hook: plate for Nebenhut (auto-used), plate for Ochs (chosen over built-in)
+    const mk = (color, cb) => { const c = document.createElement("canvas"); c.width = 200; c.height = 150; const x = c.getContext("2d"); x.fillStyle = color; x.fillRect(0, 0, 200, 150); c.toBlob((b) => cb(new File([b], color.slice(1) + ".png", { type: "image/png" }))); };
+    const drop = (f) => { const dt = new DataTransfer(); dt.items.add(f); $("#ref").dispatchEvent(new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true })); };
+    open(G.find((g) => g.id === "nebenhut"), "right", 0);
+    mk("#2a6", (f) => { drop(f); setTimeout(() => { const neb = choiceNow();
+      open(G.find((g) => g.id === "ochs"), "right", 0);
+      mk("#a33", (f2) => { drop(f2); setTimeout(() => { const before = choiceNow(); const btns = [...document.querySelectorAll("#myplates .mp")]; btns[1].querySelector("button").click();
+        document.title = `nebenhut=${neb.slice(0, 1)} ochsBefore=${before} ochsAfter=${choiceNow().slice(0, 1)} plates=${btns.length}`; }, 400); }); }, 400); });
+  }, 300);
+  if (start.includes("usetest")) setTimeout(() => { open(G.find((g) => g.id === "alber"), "right", 0); $("#use-guard").checked = false; $("#use-guard").dispatchEvent(new Event("change")); document.title = "alber unused=" + guard.unused + " sidesDisabled=" + $("#use-left").disabled; }, 300);
+  if (start.includes("sidetest")) setTimeout(() => { // test hook: Ochs left off, Alber left on, Alber both off refused
+    const n0 = STANCES.length; window.confirm = () => true;
+    open(G.find((g) => g.id === "ochs"), "right", 0); $("#use-left").checked = false; $("#use-left").dispatchEvent(new Event("change"));
+    const n1 = STANCES.length;
+    open(G.find((g) => g.id === "alber"), "right", 0); $("#use-left").checked = true; $("#use-left").dispatchEvent(new Event("change"));
+    const n2 = STANCES.length;
+    $("#use-right").checked = false; $("#use-right").dispatchEvent(new Event("change")); $("#use-left").checked = false; $("#use-left").dispatchEvent(new Event("change"));
+    document.title = `stances ${n0} > ochsLeftOff ${n1} > alberLeftOn ${n2}; alber sides now ${sidesOf(guard).join("+")}`;
+  }, 300);
+  if (start.includes("knee40")) { pose.kneeL = 40; pose.kneeR = -40; refresh(false); } // test hook
+  if (start.includes("feettest")) { pose.footLTurn = 60; pose.footRFwd = -0.2; pose.footRSide = 0.15; refresh(false); } // test hook
+  if (start.includes("ovtest")) setTimeout(() => { // test hook: overlay plate, move mode, drag 40,25, wheel up once
+    $("#overlay-plate").click(); $("#ov-move").click(); const h0 = JSON.stringify(pose.hilt);
+    const pe = (t, x, y) => view.dispatchEvent(new PointerEvent(t, { clientX: x, clientY: y, button: 0, pointerId: 1, bubbles: true }));
+    pe("pointerdown", 600, 400); pe("pointermove", 640, 425); pe("pointerup", 640, 425);
+    view.dispatchEvent(new WheelEvent("wheel", { deltaY: -100, bubbles: true, cancelable: true }));
+    document.title = `transform=${$("#overlay").style.transform} swordUnchanged=${h0 === JSON.stringify(pose.hilt)}`;
+  }, 300);
+  if (start.includes("steptest")) setTimeout(() => { // test hook: + on hilt height, shift + , then undo once
+    const row = [...document.querySelectorAll(".slider.num")].find((r) => r.querySelector("label").textContent === "Hilt height");
+    const plus = row.querySelectorAll(".step")[1], press = (shift) => { plus.dispatchEvent(new PointerEvent("pointerdown", { shiftKey: shift, bubbles: true })); plus.dispatchEvent(new PointerEvent("pointerup", { bubbles: true })); };
+    const h0 = pose.hilt[1]; press(false); const h1 = pose.hilt[1]; press(true); const h2 = pose.hilt[1];
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "z", ctrlKey: true })); const h3 = pose.hilt[1];
+    document.title = `h0=${h0} +1=${h1} shift+=${h2} undo=${h3} out=${row.querySelector("output").textContent}`;
+  }, 300);
+  if (start.includes("imgtest")) setTimeout(() => { // test hook: drop a generated image, then overlay it
+    const c = document.createElement("canvas"); c.width = 300; c.height = 200; const x = c.getContext("2d"); x.fillStyle = "#a33"; x.fillRect(0, 0, 300, 200);
+    c.toBlob((b) => { const dt = new DataTransfer(); dt.items.add(new File([b], "test-plate.png", { type: "image/png" }));
+      $("#ref").dispatchEvent(new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true }));
+      setTimeout(() => { const n = document.querySelectorAll("#myplates img").length; document.querySelector("#myplates .mp button").click();
+        document.title = `imgs=${n} overlay=${$("#overlay").style.display}`; }, 400); });
+  }, 300);
+  if (start.includes("headtest")) { pose.headTurn = 40; pose.headNod = 20; pose.headLean = 20; refresh(false); } // test hook
+  if (start.includes("navtest")) setTimeout(() => { // test hook: next x3, previous x1
+    const nx = document.querySelector(".next-stance"), pv = document.querySelector(".prev-stance"); const seen = [];
+    for (let i = 0; i < 3; i++) { nx.click(); seen.push(guard.id + "/" + side + "/" + vi); }
+    pv.click(); seen.push(guard.id + "/" + side + "/" + vi);
+    document.title = seen.join(" > ") + " pos=" + document.querySelector(".stance-pos").textContent;
+  }, 300);
+  if (start.includes("undotest")) setTimeout(() => { // test hook: two edits, undo twice, redo once
+    const h0 = pose.hilt[1]; pose.hilt[1] = 1.0; refresh(false); commit(); $("#switch-feet").click();
+    const key = (k, shift) => document.dispatchEvent(new KeyboardEvent("keydown", { key: k, ctrlKey: true, shiftKey: !!shift }));
+    key("z"); const a = pose.lead; key("z"); const b = pose.hilt[1]; key("y"); const c = pose.hilt[1];
+    document.title = `undo1 lead=${a} undo2 hilt=${b} (orig ${h0}) redo hilt=${c}`;
+  }, 300);
+  renderSaved();
+})();
+</script>
+</body>
+</html>

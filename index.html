@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#efe2c4">
+<title>Posta hut</title>
+<link rel="icon" href="assets/logo/emblem.png">
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="ico-sword" viewBox="0 0 12 44"><path d="M6 1 L7.4 6 L7.4 28 L4.6 28 L4.6 6 Z" fill="#cfc8bb" stroke="currentColor" stroke-width="1"/><rect x="0.5" y="28" width="11" height="2.6" rx="1" fill="currentColor"/><rect x="4.7" y="30.6" width="2.6" height="9" fill="currentColor"/><circle cx="6" cy="41.5" r="2.2" fill="currentColor"/></symbol></svg>
+<div id="app">
+
+  <!-- TITLE -->
+  <section id="title" class="screen active">
+    <a class="hammer" href="editor.html" aria-label="Guard editor" title="Guard editor"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><g transform="rotate(-38 12 12)"><path d="M10.4 9 L13.8 9 L14.5 22.1 Q12.1 23.4 9.7 22.1 Z" fill="currentColor"/><path d="M2.6 3.4 H9 L10 2.9 H14.2 L21.6 5.9 V7.1 L14.2 10.1 H10 L9 9.6 H2.6 Q2 9.6 2 9 V4 Q2 3.4 2.6 3.4 Z" fill="currentColor"/><path d="M3.9 4.6 V8.4 M5.6 4.6 V8.4 M9.5 3.9 V9.1 M15.5 5.2 L20.4 6.5" stroke="#efe2c4" stroke-width=".6" fill="none"/><path d="M11.3 11.5 L11.1 21 M13 11.5 L13.2 21" stroke="#efe2c4" stroke-width=".45"/></g></svg></a>
+    <button class="gear" data-go="settings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M20.04 9.94 L23.07 10.32 23.07 13.68 20.04 14.06 19.14 16.23 21.02 18.64 18.64 21.02 16.23 19.14 14.06 20.04 13.68 23.07 10.32 23.07 9.94 20.04 7.77 19.14 5.36 21.02 2.98 18.64 4.86 16.23 3.96 14.06 0.93 13.68 0.93 10.32 3.96 9.94 4.86 7.77 2.98 5.36 5.36 2.98 7.77 4.86 9.94 3.96 10.32 0.93 13.68 0.93 14.06 3.96 16.23 4.86 18.64 2.98 21.02 5.36 19.14 7.77 Z" fill="currentColor"/><circle cx="12" cy="12" r="6.3" fill="none" stroke="#efe2c4" stroke-width="0.8"/><g stroke="#efe2c4" stroke-width="0.55"><line x1="15.50" y1="12.00" x2="17.00" y2="12.00"/><line x1="15.03" y1="13.75" x2="16.33" y2="14.50"/><line x1="13.75" y1="15.03" x2="14.50" y2="16.33"/><line x1="12.00" y1="15.50" x2="12.00" y2="17.00"/><line x1="10.25" y1="15.03" x2="9.50" y2="16.33"/><line x1="8.97" y1="13.75" x2="7.67" y2="14.50"/><line x1="8.50" y1="12.00" x2="7.00" y2="12.00"/><line x1="8.97" y1="10.25" x2="7.67" y2="9.50"/><line x1="10.25" y1="8.97" x2="9.50" y2="7.67"/><line x1="12.00" y1="8.50" x2="12.00" y2="7.00"/><line x1="13.75" y1="8.97" x2="14.50" y2="7.67"/><line x1="15.03" y1="10.25" x2="16.33" y2="9.50"/></g><circle cx="12" cy="12" r="2.4" fill="#efe2c4"/></svg></button>
+    <h1 class="logo logo-img"><img src="assets/logo/logo.png" srcset="assets/logo/logo.png 1x, assets/logo/logo@2x.png 2x" alt="Posta hut"></h1>
+    <p class="sub">Seize the Vor, Strike with Presteza</p>
+    <div class="rank-card"><span><span id="player-name" class="pname"></span> <span id="rank-name">Scholar</span></span><span id="rank-xp">0 XP</span>
+      <div class="xpbar"><i id="xp-fill"></i></div></div>
+    <p class="best">Best streak: <b id="best-streak">0</b></p>
+    <p class="fleuron" aria-hidden="true"><span class="leaf"></span></p>
+
+
+    <div class="menu">
+      <div class="mode-row">
+        <button class="mode-card" data-setup="bout"><img src="assets/ui/vignette_bout.jpg" alt=""><span class="mc-title">Bout</span><small>10 guards, speed and accuracy</small></button>
+        <button class="mode-card" data-setup="survival"><img src="assets/ui/vignette_survival.jpg" alt=""><span class="mc-title">Survival</span><small>3 misses and you're out</small></button>
+      </div>
+      <div class="menu-row">
+        <button class="big" data-go="salle">The Salle<small>Study every guard</small></button>
+        <button class="big" data-go="hall">Hall of Masters<small>Celerity · Fortitude</small></button>
+      </div>
+      <button class="big support-btn" data-go="support"><span class="seal-ico" aria-hidden="true"></span>Support the Salle<small>Posta hut is free. Tips keep it sharp.</small></button>
+    </div>
+
+
+  </section>
+
+  <!-- PLAY -->
+  <section id="play" class="screen">
+    <header class="hud">
+      <button class="icon" id="quit" aria-label="Quit"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4.2 5.6 C9 9.5 14 14.5 19.4 19.8 C15.6 14.2 10.8 8.8 5.6 4.2 Z M19.8 4.6 C14.5 9 9.5 14 4.6 19.4 C9.8 15.6 15 10.6 18.4 4.2 Z" fill="currentColor" stroke="currentColor" stroke-width="0.9" stroke-linejoin="round"/></svg></button>
+      <span id="hud-progress"></span>
+      <span id="hud-combo"></span>
+      <span id="hud-score">0</span>
+    </header>
+    <div class="stage">
+      <div class="margin-timer"><i id="timer-ink"></i><b class="drop" id="timer-drop"></b></div>
+      <div id="stage-svg" class="stage-3d"></div>
+      <img id="stage-plate" class="stage-plate hidden" alt="A fencer in a guard, from a historical manuscript">
+      <p class="stage-credit" id="stage-credit"></p>
+      <div id="find-prompt" class="find-prompt hidden"><small>Find the guard</small><div class="find-name" id="find-name"></div><div class="find-modern" id="find-modern"></div></div>
+      <svg id="splat" class="splat" viewBox="0 0 200 200" aria-hidden="true"><g fill="#1d1712">
+        <path d="M104 38c14-2 16 18 30 20s26-10 32 4-9 22-5 36 22 16 17 31-24 6-33 17-1 30-17 33-17-16-31-15-24 17-36 7 4-26-5-36-28-9-25-24 22-13 24-27-10-28 4-33 26 9 38 4 2-15 7-17z"/>
+        <circle cx="38" cy="44" r="7"/><circle cx="170" cy="40" r="5"/><circle cx="182" cy="150" r="8"/><circle cx="26" cy="160" r="5"/>
+        <circle cx="150" cy="186" r="4"/><circle cx="60" cy="22" r="3.5"/><circle cx="12" cy="104" r="4"/><circle cx="192" cy="96" r="3"/>
+      </g></svg>
+      <div id="fb-correct" class="fb hidden">
+        <div class="seal"><svg viewBox="0 0 100 100"><path d="M50 4l7 8 10-4 3 10 11 1-2 11 9 6-6 9 6 9-9 6 2 11-11 1-3 10-10-4-7 8-7-8-10 4-3-10-11-1 2-11-9-6 6-9-6-9 9-6-2-11 11-1 3-10 10 4z" fill="#a3261d"/><circle cx="50" cy="50" r="27" fill="none" stroke="#7a1912" stroke-width="3"/><path d="M50 30v40M40 60h20M44 66l6 6 6-6" stroke="#f3d9c9" stroke-width="4" fill="none" stroke-linecap="round"/></svg></div>
+        <div class="fb-name" id="fb-name"></div>
+        <div class="fb-modern" id="fb-modern"></div>
+        <div class="fb-pts" id="fb-pts"></div>
+      </div>
+    </div>
+    <div class="answers" id="answers"></div>
+
+    <div id="fb-wrong" class="sheet hidden">
+      <h2 id="fbw-title">Not quite</h2>
+      <div class="compare">
+        <figure id="cmp-picked"><div class="c3d"></div><img class="cmp-plate hidden" alt=""><figcaption></figcaption></figure>
+        <figure id="cmp-right"><div class="c3d"></div><img class="cmp-plate hidden" alt=""><figcaption></figcaption></figure>
+      </div>
+      <p class="tip" id="fbw-tip"></p>
+      <figure class="src-plate hidden" id="fbw-plate"><img alt=""><figcaption></figcaption></figure>
+      <p class="cite" id="fbw-cite"></p>
+      <button class="big" id="fbw-next">Continue</button>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="result" class="screen">
+    <h2 class="heading" id="res-title">Bout complete</h2>
+    <div class="res-score" id="res-score">0</div>
+    <div class="stats">
+      <div><b id="res-acc">0%</b><span>accuracy</span></div>
+      <div><b id="res-combo">0</b><span>best combo</span></div>
+      <div><b id="res-fast">–</b><span>fastest</span></div>
+    </div>
+    <p class="xp-gain" id="res-xp"></p>
+    <p class="res-practice hidden" id="res-practice">Best streaks only count with every master selected.</p>
+    <div id="res-missed"></div>
+    <div class="menu">
+      <button class="big" id="res-again">Again</button>
+      <button class="big ghost" data-go="title">Menu</button>
+    </div>
+  </section>
+
+  <!-- HALL -->
+  <section id="hall" class="screen">
+    <h2 class="heading">Hall of Masters</h2>
+    <div class="toggle" id="hall-tab"><button data-v="celerity">Celerity</button><button data-v="fortitude">Fortitude</button></div>
+    <p class="hall-note" id="hall-note"></p>
+    <table class="board"><thead><tr><th>#</th><th>Name</th><th id="hall-col">XP</th></tr></thead><tbody id="hall-body"></tbody></table>
+    <p class="hall-note">XP counts in full with every master ticked, in part with fewer. Streaks always count.</p>
+    <button class="big ghost" data-go="title">Back</button>
+  </section>
+
+  <!-- NAME (asked at first launch; Settings can change it) -->
+  <section id="name-screen" class="screen">
+    <h1 class="logo logo-img"><img src="assets/logo/logo.png" srcset="assets/logo/logo.png 1x, assets/logo/logo@2x.png 2x" alt="Posta hut"></h1>
+    <h2 class="heading">Your name</h2>
+    <form id="name-form" class="name-form" autocomplete="off">
+      <input id="player-in" maxlength="12" autocapitalize="words" spellcheck="false" enterkeyhint="done" aria-label="Your name, up to 12 characters" placeholder="Your name">
+      <p class="count" id="player-count">0 / 12</p>
+      <p class="err" id="player-err"></p>
+      <button type="submit" class="big">Enter the Salle</button>
+      <button type="button" class="big ghost hidden" id="name-cancel">Cancel</button>
+    </form>
+    <p class="hall-note">Shown on the Hall of Masters. Up to 12 characters.</p>
+  </section>
+
+  <!-- SETUP: difficulty and masters, shown after choosing Bout or Survival ("Again" skips it) -->
+  <section id="setup" class="screen">
+    <button class="gear" data-go="settings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M20.04 9.94 L23.07 10.32 23.07 13.68 20.04 14.06 19.14 16.23 21.02 18.64 18.64 21.02 16.23 19.14 14.06 20.04 13.68 23.07 10.32 23.07 9.94 20.04 7.77 19.14 5.36 21.02 2.98 18.64 4.86 16.23 3.96 14.06 0.93 13.68 0.93 10.32 3.96 9.94 4.86 7.77 2.98 5.36 5.36 2.98 7.77 4.86 9.94 3.96 10.32 0.93 13.68 0.93 14.06 3.96 16.23 4.86 18.64 2.98 21.02 5.36 19.14 7.77 Z" fill="currentColor"/><circle cx="12" cy="12" r="6.3" fill="none" stroke="#efe2c4" stroke-width="0.8"/><g stroke="#efe2c4" stroke-width="0.55"><line x1="15.50" y1="12.00" x2="17.00" y2="12.00"/><line x1="15.03" y1="13.75" x2="16.33" y2="14.50"/><line x1="13.75" y1="15.03" x2="14.50" y2="16.33"/><line x1="12.00" y1="15.50" x2="12.00" y2="17.00"/><line x1="10.25" y1="15.03" x2="9.50" y2="16.33"/><line x1="8.97" y1="13.75" x2="7.67" y2="14.50"/><line x1="8.50" y1="12.00" x2="7.00" y2="12.00"/><line x1="8.97" y1="10.25" x2="7.67" y2="9.50"/><line x1="10.25" y1="8.97" x2="9.50" y2="7.67"/><line x1="12.00" y1="8.50" x2="12.00" y2="7.00"/><line x1="13.75" y1="8.97" x2="14.50" y2="7.67"/><line x1="15.03" y1="10.25" x2="16.33" y2="9.50"/></g><circle cx="12" cy="12" r="2.4" fill="#efe2c4"/></svg></button>
+    <h2 class="heading" id="setup-title">Bout</h2>
+    <p class="setup-sub" id="setup-sub"></p>
+    <div class="quiz-modes" id="quiz-modes" role="group" aria-label="Question type">
+      <button data-v="name"><b>Name the guard</b><small>See a fencer, tap the name</small></button>
+      <button data-v="find"><b>Find the guard</b><small>See a name, tap the fencer</small></button>
+    </div>
+    <h3 class="setup-h">Difficulty</h3>
+    <div class="toggle tier-cards" data-setting="tier">
+      <button data-v="novice"><span class="swords"><svg class="sw" viewBox="0 0 12 44" aria-hidden="true"><use href="#ico-sword"/></svg></span>Novice</button>
+      <button data-v="scholar"><span class="swords"><svg class="sw" viewBox="0 0 12 44" aria-hidden="true"><use href="#ico-sword"/></svg><svg class="sw" viewBox="0 0 12 44" aria-hidden="true"><use href="#ico-sword"/></svg></span>Scholar</button>
+      <button data-v="master"><span class="swords"><svg class="sw" viewBox="0 0 12 44" aria-hidden="true"><use href="#ico-sword"/></svg><svg class="sw" viewBox="0 0 12 44" aria-hidden="true"><use href="#ico-sword"/></svg><svg class="sw" viewBox="0 0 12 44" aria-hidden="true"><use href="#ico-sword"/></svg></span>Master</button>
+    </div>
+    <p class="setup-note" id="tier-note"></p>
+    <p class="fleuron" aria-hidden="true"><span class="leaf"></span></p>
+    <h3 class="setup-h">Masters</h3>
+    <div class="masters" id="masters" role="group" aria-label="Masters"></div>
+    <p class="masters-note" id="masters-note"></p>
+    <p class="fleuron" aria-hidden="true"><span class="leaf"></span></p>
+    <h3 class="setup-h">Guard names</h3>
+    <div class="name-modes" id="name-modes" role="group" aria-label="Guard names on the buttons">
+      <button data-v="hist" aria-pressed="true"><b>Historical</b><small>Vom Tag, Posta Longa</small></button>
+      <button data-v="modern" aria-pressed="false"><b>Modern</b><small>Roof, Long Guard</small></button>
+    </div>
+    <p class="setup-note" id="names-note"></p>
+    <div class="menu setup-go">
+      <button class="big" id="setup-begin" data-start="bout">Begin</button>
+      <button class="big ghost" data-go="title">Back</button>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="settings" class="screen">
+    <h2 class="heading">Settings</h2>
+    <div class="settings-list">
+      <div class="set" style="cursor:default"><span style="flex:1"><b>Your name</b><small>Shown on the Hall of Masters: <span id="settings-name"></span></small></span><button class="big ghost" id="change-name" style="min-height:40px;font-size:16px;padding:4px 14px">Change</button></div>
+      <label class="set"><input type="checkbox" id="opt-plates"><span><b>Only play with plates</b><small>Questions show the original manuscript drawings instead of drawn fencers. Only guards with a plate are asked.</small></span></label>
+      <label class="set"><input type="checkbox" id="opt-sound"><span><b>Sound</b><small>Blade clashes, thuds and the coin toss.</small></span></label>
+      <label class="set"><input type="checkbox" id="opt-mixlooks"><span><b>Mixed outfits <i class="hard">unfairly hard</i></b><small>Fencers wear German or Italian clothes at random, so you can't tell a Meyer guard from a Fiore one by dress. Only the guard itself gives it away.</small></span></label>
+      <label class="set"><input type="checkbox" id="opt-motion"><span><b>Reduced motion</b><small>Skip the fencer’s move into each guard and other animations.</small></span></label>
+    </div>
+    <button class="big ghost" id="settings-back">Back</button>
+  </section>
+
+  <!-- SUPPORT -->
+  <section id="support" class="screen">
+    <h2 class="heading">Support the Salle</h2>
+    <div class="coin-wrap" aria-hidden="true">
+      <div class="coin" id="coin">
+        <img class="face front" src="assets/coin/half-portugaloser-obverse.jpg" alt="">
+        <img class="face back" src="assets/coin/half-portugaloser-reverse.jpg" alt="">
+      </div>
+    </div>
+    <p class="coin-cap">Half Portugalöser, Hamburg 1679 · National Numismatic Collection, Smithsonian (public domain)</p>
+    <p class="support-intro">Posta hut is 100% free and always will be. Donations are appreciated. If there is interest, I'll add more masters and schools to study! Tips unlock nothing; you have the whole game already.</p>
+    <p class="test-banner hidden" id="tip-test">Test mode: no money is charged</p>
+    <div class="tips" id="tips"></div>
+    <p class="err" id="tip-err"></p>
+    <div class="thanks hidden" id="tip-thanks">
+      <h3>Thank you, patron!</h3>
+      <p>From now on, names you sign in the Hall of Masters bear the gold seal.</p>
+    </div>
+    <p class="patron-note hidden" id="patron-note">You are a patron of the Salle. Names you sign carry the gold seal.</p>
+    <button class="big ghost" data-go="title">Back</button>
+  </section>
+
+  <!-- SALLE -->
+  <section id="salle" class="screen">
+    <h2 class="heading">The Salle</h2>
+    <figure class="src-plate hidden" id="salle-plate"><img alt=""><figcaption></figcaption></figure>
+    <div id="salle-variants">
+      <p class="tap-hint">Tap to zoom</p>
+      <div class="vthumbs" id="vthumbs"></div>
+    </div>
+    <div class="salle-info">
+      <h3 id="salle-name"></h3>
+      <div class="toggle hidden" id="salle-sides"><button data-v="right">Right side</button><button data-v="left">Left side</button></div>
+      <p class="tip" id="salle-tip"></p>
+      <p class="cite" id="salle-cite"></p>
+    </div>
+    <div class="salle-list" id="salle-list"></div>
+    <button class="big ghost" data-go="title">Back</button>
+  </section>
+  <div id="vzoom" class="vzoom hidden" role="dialog" aria-label="Variant, zoomed">
+    <button class="vzoom-x" id="vzoom-x" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4.2 5.6 C9 9.5 14 14.5 19.4 19.8 C15.6 14.2 10.8 8.8 5.6 4.2 Z M19.8 4.6 C14.5 9 9.5 14 4.6 19.4 C9.8 15.6 15 10.6 18.4 4.2 Z" fill="currentColor" stroke="currentColor" stroke-width="0.9" stroke-linejoin="round"/></svg></button>
+    <div class="vzoom-stage" id="vzoom-stage"></div>
+    <p class="vzoom-cap"></p><p class="vzoom-hint">Drag to rotate</p>
+  </div>
+</div>
+
+<script src="data/guards.js"></script>
+<script src="js/pose-edits.js"></script>
+<script src="vendor/three.min.js"></script>
+<script src="js/looks.js"></script>
+<script src="js/fencer3d.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/tips.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

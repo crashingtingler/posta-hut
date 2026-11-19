@@ -1,0 +1,16 @@
+{
+  "name": "Posta hut",
+  "short_name": "Posta hut",
+  "description": "Learn the longsword guards of Liechtenauer, Fiore and Meyer.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#efe2c4",
+  "theme_color": "#efe2c4",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

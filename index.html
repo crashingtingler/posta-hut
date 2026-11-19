@@ -250,6 +250,7 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   row.classList.remove("hidden"); // always offered in a browser tab
   const ua = navigator.userAgent;
   const steps = ios ? "In Safari, tap the Share button (the square with an arrow), then “Add to Home Screen”, then Add."
+    : /DuckDuckGo/i.test(ua) ? "Tap the menu (⋮), then “Add to Home Screen”. For the full-screen app, install it once from Chrome instead."
     : /SamsungBrowser/i.test(ua) ? "Tap the menu (☰) at the bottom, then “Add page to” → “Home screen”."
     : /Firefox/i.test(ua) ? "Tap the menu (⋮), then “Install” (or “Add to Home screen”)."
     : /Android/i.test(ua) ? "Tap Chrome’s menu (⋮, top right), then “Install app” or “Add to Home screen”. Opened from a chat app? Choose “Open in Chrome” first."

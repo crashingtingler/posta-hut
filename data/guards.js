@@ -428,3 +428,200 @@ window.MODERN_NAMES = {
   schrankhut: "Barrier Guard", hangetort: "Hanging Point", schluessel: "Key", einhorn: "Unicorn",
 };
 for (const g of window.GUARDS) g.modern = window.MODERN_NAMES[g.id] || "";
+
+// ---- Royal Armouries Ms. I.33 (sword and buckler, Franconia, c. 1300) ----
+// The seven wards named in the verse on fol. 1r: "Septem custodie sunt sub brach incipiende / Humero dextrali datur
+// alter, terna sinistro / Capiti da quartam, da dextro latere quintam / Pectori da sextam, postrema sit tibi langort".
+// Each plate is the figure the text says is in that ward (Bachmann's transcription/translation on Wiktenauer).
+// Scans: Royal Armouries; Wikimedia Commons lists its copies as public domain (PD-Art). The Armouries also offers them
+// under its Non-Commercial Licence — the player chose to use them and will contact the Armouries if needed.
+// All wards are one-sided (right-handed sword, buckler in the left fist). Poses read from the plates.
+window.TRADITIONS.i33 = { label: "Sword & buckler", color: "#4f6b2a" };
+window.LOOKS.i33 = {
+  style: "i33",
+  source: "after Royal Armouries Ms. I.33 (c. 1300)",
+  // washed colours of the I.33 tunics: ochre, blue, grey, olive green, brown
+  jackets: ["#cfae5a", "#8ea3cf", "#a3a3a8", "#9aa267", "#b9864a", "#d9c9a0"],
+  hose: ["#cfae5a", "#8ea3cf", "#a3a3a8", "#9aa267", "#e8dcc0"],
+  hair: ["#6b4a2a", "#8a6a3a", "#4a3424", "#a07a40"],
+  priest: 0.5, // the tonsured priest; otherwise the hooded scholar
+  beard: [1, 0, 0],
+};
+window.MASTERS.push({ id: "i33", name: "I.33", tradition: "i33" });
+(function () {
+  const SRC = "Royal Armouries Ms. I.33 (Walpurgis Fechtbuch), Franconia, c. 1300";
+  const CREDIT = "Royal Armouries Ms. I.33 · scan: Royal Armouries · listed as public domain (PD-Art) on Wikimedia Commons";
+  const ward = (id, name, modern, variants, plate, tip, pose) => ({
+    id, name, modern, variants, tradition: "i33", master: "i33", source: SRC, plate,
+    manuscript: { src: "assets/plates/" + id + ".jpg", credit: CREDIT },
+    tip, pose, poses: [pose], sideUse: { right: true, left: false },
+  });
+  window.GUARDS.push(
+    ward("i33_prima", "Prima", "Underarm", ["prima custodia", "sub brachio", "sub brach"],
+      "fol. 2r, upper left figure (“prima custodia, videlicet sub brachio”)",
+      "Prima (sub brachio): the sword hand tucked under the left arm, blade trailing behind you, buckler held out in front.",
+      { lead: "right", stance: 1.00, width: 0.30, crouch: 0.22, shift: 0.06, turn: -20, twist: -30, lean: 18, hilt: [0.05, 1.02, -0.20], blade: [-165, -22], poleR: [1, -0.5, 0], buckler: [0.40, 1.20, -0.02] }),
+    ward("i33_secunda", "Secunda", "Right Shoulder", ["humero dextrali"],
+      "fol. 9r, upper left figure (“the second ward, which is given to the right shoulder”)",
+      "Secunda: sword on the right shoulder, blade lying back over it, buckler stretched out toward the opponent.",
+      { lead: "left", stance: 1.00, width: 0.30, crouch: 0.20, shift: 0.06, turn: 30, twist: 10, lean: 12, hilt: [0.18, 1.36, 0.12], blade: [178, 22], buckler: [0.62, 1.30, 0.00] }),
+    ward("i33_tertia", "Tertia", "Left Shoulder", ["humero sinistro"],
+      "fol. 12r, upper left figure (“Here, the priest adopts third ward”)",
+      "Tertia: sword drawn over to the left shoulder, blade level behind you, buckler held high in front.",
+      { lead: "right", stance: 1.00, width: 0.30, crouch: 0.20, shift: 0.06, turn: -20, twist: -10, lean: 12, hilt: [0.12, 1.42, -0.12], blade: [-175, 5], poleR: [1, 0, 0.3], buckler: [0.45, 1.45, -0.02] }),
+    ward("i33_quarta", "Quarta", "High Guard", ["capiti"],
+      "fol. 14v, lower right figure (“here the fourth is treated”)",
+      "Quarta: sword raised over the head, blade sloping down behind you, buckler before the chest.",
+      { lead: "left", stance: 1.00, width: 0.30, crouch: 0.20, shift: 0.05, turn: 25, twist: 5, lean: 10, hilt: [0.10, 1.72, 0.10], blade: [180, -28], poleR: [0.2, 0.3, 1], buckler: [0.45, 1.15, -0.02], view: 120 }),
+    ward("i33_quinta", "Quinta", "Tail", ["dextro latere"],
+      "fol. 27v, upper left figure (“Here the fifth ward is displaced, its displacement being halbschilt”)",
+      "Quinta: sword low at the right side, point trailing back, buckler arm stretched out in front.",
+      { lead: "left", stance: 1.00, width: 0.30, crouch: 0.20, shift: 0.08, turn: 35, twist: 10, lean: 14, headNod: 15, hilt: [-0.05, 0.98, 0.28], blade: [178, -8], buckler: [0.80, 1.38, -0.05] }),
+    ward("i33_sexta", "Sexta", "Breast", ["pectori"],
+      "fol. 17r, upper left figure (“Here the priest adopts the sixth ward, which is given to the breast”)",
+      "Sexta: hilt at the breast, blade held level at the opponent, buckler pushed out ahead along it.",
+      { lead: "left", stance: 1.00, width: 0.30, crouch: 0.20, shift: 0.08, turn: 25, twist: 0, lean: 12, hilt: [0.22, 1.22, 0.12], blade: [-8, 0], poleR: [-1, -0.15, 0.5], buckler: [0.68, 1.42, -0.04] }),
+    ward("i33_septima", "Septima", "Longpoint", ["langort"],
+      "fol. 20r, upper left figure (“Here the final ward is again adopted, which is called langort, and here the priest is adopting it”)",
+      "Septima (langort): both arms stretched forward, buckler over the sword hand, point sloping down at the opponent.",
+      { lead: "left", stance: 1.05, width: 0.30, crouch: 0.20, shift: 0.10, turn: 20, twist: -15, lean: 25, hilt: [0.80, 1.08, 0.02], blade: [0, -40], buckler: [0.86, 1.18, -0.03] }),
+  );
+})();
+
+// ---- Player edits, third batch: the I.33 wards (baked 2026-11-19 from stance-off-poses(1).json, saved in Firefox) ----
+// Applied exactly as the stance editor applied them: replace a pose, or add a variant (Quarta v2, Sexta, Septima).
+window.BAKED_EDITS_3 = [
+  {"name":"Prima (right)","saved":"2026-11-19T20:30:57.123Z","guard":"i33_prima","side":"right","vi":0,"pose":{"lead":"right","stance":0.66,"width":0.3,"crouch":0.21,"shift":0.28,"turn":-6,"twist":-13,"lean":18,"hilt":[0.508,1.12,-0.131],"blade":[-134,-22],"poleR":[0.859,-0.5,0.511],"buckler":[0.765,1.21,-0.02],"bucklerFace":[31,0],"headTurn":21}},
+  {"name":"Secunda (right)","saved":"2026-11-19T20:33:32.028Z","guard":"i33_secunda","side":"right","vi":0,"pose":{"lead":"left","stance":1,"width":0.3,"crouch":0.2,"shift":-0.13,"turn":30,"twist":10,"lean":12,"hilt":[0.04,1.36,0.18],"blade":[178,22],"buckler":[0.56,1.25,0],"bucklerFace":[0,0]}},
+  {"name":"Tertia (right)","saved":"2026-11-19T20:36:43.153Z","guard":"i33_tertia","side":"right","vi":0,"pose":{"lead":"right","stance":0.83,"width":0.3,"crouch":0.2,"shift":0.19,"turn":-20,"twist":-10,"lean":12,"hilt":[0.25,1.32,-0.18],"blade":[-175,5],"poleR":[1,0,0.3],"buckler":[0.69,1.19,-0.02],"bucklerFace":[0,0]}},
+  {"name":"Quarta (right) v2","saved":"2026-11-19T20:50:52.917Z","guard":"i33_quarta","side":"right","addVariant":true,"pose":{"lead":"left","stance":0.72,"width":0.3,"crouch":0.13,"shift":-0.12,"turn":25,"twist":5,"lean":10,"hilt":[-0.07,1.51,0.23],"blade":[180,15],"poleR":[0.2,0.3,1],"buckler":[0.4,1.22,0.04],"view":120,"bucklerFace":[0,0],"roll":-18}},
+  {"name":"Quarta (right) v1","saved":"2026-11-19T20:53:43.536Z","guard":"i33_quarta","side":"right","vi":0,"pose":{"lead":"left","stance":1,"width":0.3,"crouch":0.2,"shift":0.05,"turn":25,"twist":5,"lean":10,"hilt":[0.1,1.62,0.1],"blade":[180,-28],"poleR":[0.2,0.3,1],"buckler":[0.59,1.15,-0.02],"view":120}},
+  {"name":"Quinta (right)","saved":"2026-11-19T20:59:13.093Z","guard":"i33_quinta","side":"right","vi":0,"pose":{"lead":"left","stance":0.76,"width":0.3,"crouch":0.1,"shift":-0.1,"turn":35,"twist":10,"lean":14,"headNod":15,"hilt":[-0.23,0.75,0.28],"blade":[178,-8],"buckler":[0.62,1.14,-0.05],"elbowR":87,"headTurn":-24,"bucklerFace":[0,0]}},
+  {"name":"Sexta (right)","saved":"2026-11-19T21:04:45.020Z","guard":"i33_sexta","side":"right","addVariant":true,"pose":{"lead":"left","stance":1,"width":0.3,"crouch":0.2,"shift":-0.12,"turn":52,"twist":4,"lean":12,"hilt":[-0.142,1.14,0.272],"blade":[-12,1],"poleR":[-1.114,-0.15,-0.083],"buckler":[0.587,1.17,0.065],"elbowR":-16,"elbowL":1,"bucklerFace":[-2,0],"headTurn":-18}},
+  {"name":"Septima (right)","saved":"2026-11-19T21:09:27.021Z","guard":"i33_septima","side":"right","addVariant":true,"pose":{"lead":"left","stance":1.05,"width":0.3,"crouch":0.2,"shift":-0.02,"turn":20,"twist":-15,"lean":25,"hilt":[0.53,0.89,0.02],"blade":[0,-43],"buckler":[0.6,0.95,-0.03],"bucklerFace":[0,0],"roll":92}},
+  // later saves from Chrome (stance-off-poses (5).json): Secunda replaced, Quarta's 2nd variant replaced
+  {"name":"Secunda (right)","saved":"2026-11-19T21:26:58.621Z","guard":"i33_secunda","side":"right","vi":0,"pose":{"lead":"left","stance":1,"width":0.3,"crouch":0.2,"shift":-0.13,"turn":30,"twist":10,"lean":12,"hilt":[0.02,1.21,0.18],"blade":[178,22],"buckler":[0.56,1.25,0],"bucklerFace":[0,0]}},
+  {"name":"Quarta (right) v2","saved":"2026-11-19T21:27:27.151Z","guard":"i33_quarta","side":"right","vi":1,"pose":{"lead":"left","stance":0.72,"width":0.3,"crouch":0.13,"shift":-0.12,"turn":25,"twist":5,"lean":10,"hilt":[-0.07,1.59,0.23],"blade":[180,15],"poleR":[0.2,0.3,1],"buckler":[0.4,1.22,0.04],"view":120,"bucklerFace":[0,0],"roll":-18}},
+];
+for (const e of window.BAKED_EDITS_3) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g || !e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  if (e.addVariant) g.poses.push(e.pose);
+  else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
+}
+// ---- Salvator Fabris, Lo Schermo, overo Scienza d'Arme (Copenhagen, 1606): the four rapier guards ----
+// Book 1, Part 1, Chs. 19–32 (translation A. F. Johnson / Michael Chidester on Wiktenauer). Each chapter's text
+// describes "the following figure": chapter k shows plate k−18 (plate numbers are engraved in the plate corners).
+// Every plate shows both fencers in the guard; the plate used is the right-hand fencer. The engravings (Nicolaus
+// Andrea of Flensburg, Jan van Halbeeck, Francesco Valesio) draw the fencers nude; the 3D fencers wear early-1600s dress.
+// One pose per guard (second variants from plates 1, 3, 9 and 14 were removed at the player's request). Right side only.
+window.TRADITIONS.rapier = { label: "Italian rapier", color: "#5e3a7a" };
+window.LOOKS.rapier = {
+  style: "fabris",
+  source: "in early-1600s dress (Fabris's plates draw the fencers nude)",
+  jackets: ["#2b2522", "#5a2a2a", "#2f3a4a", "#3d4a32", "#6b5a3a", "#7a6a5a", "#8a7a5a"],
+  breeches: ["#2b2522", "#5a2a2a", "#2f3a4a", "#6b5a3a", "#8e3b3b"],
+  hose: ["#2b2522", "#c9b48a", "#7a2e2e", "#e3d6b0", "#5b6b84"],
+  hair: ["#3b2a1d", "#5a3a22", "#2a211b", "#7a5230"],
+  ruff: 0.6, beard: [0.15, 0.35, 0.5],
+};
+window.MASTERS.push({ id: "fabris", name: "Fabris", tradition: "rapier" });
+(function () {
+  const SRC = "Salvator Fabris, Lo Schermo, overo Scienza d'Arme (Copenhagen, 1606), Book 1, Part 1";
+  const CREDIT = "Salvator Fabris, Lo Schermo (1606), engraving · scan via Guy Windsor / Wiktenauer · Public domain";
+  const fab = (id, name, modern, variants, plate, tip, pose) => ({
+    id, name, modern, variants, tradition: "rapier", master: "fabris", source: SRC, plate,
+    manuscript: { src: "assets/plates/" + id + ".jpg", credit: CREDIT },
+    tip, pose, poses: [pose], sideUse: { right: true, left: false },
+  });
+  const R = { rapier: true, lead: "right" };
+  window.GUARDS.push(
+    fab("fabris_prima", "Prima", "First", ["prima guardia"],
+      "plate 2, p. 29, right figure (Ch. 20, “a well formed guard in prime”)",
+      "Prima: the hand high as when the sword is just drawn, arm extended, body bent forward, point toward the opponent.",
+      Object.assign({}, R, { stance: 0.45, width: 0.20, crouch: 0.12, shift: -0.08, turn: -30, twist: -10, lean: 60, headNod: 20,
+        hilt: [0.95, 1.40, 0.12], blade: [0, -8], roll: -150, leftHand: [0.42, 1.25, -0.04], view: 160 })),
+    fab("fabris_seconda", "Seconda", "Second", ["seconda guardia"],
+      "plate 4, p. 31, right figure (Ch. 22, “a well formed guard in second”)",
+      "Seconda: arm a little lower than in prima, hand turned nails down, body bent forward, point in line.",
+      Object.assign({}, R, { stance: 0.55, width: 0.20, crouch: 0.14, shift: -0.08, turn: -30, twist: -10, lean: 60, headNod: 15,
+        hilt: [0.95, 1.30, 0.08], blade: [0, -2], roll: -90, leftHand: [0.45, 1.18, -0.04], view: 160 })),
+    fab("fabris_terza", "Terza", "Third", ["terza guardia"],
+      "plate 10, p. 37, right figure (Ch. 28, “the manner of forming well a sword guard in third”)",
+      "Terza: the natural guard — hand neither turned up nor down, arm extended before you, point at the opponent.",
+      Object.assign({}, R, { stance: 0.70, width: 0.24, crouch: 0.18, shift: -0.02, turn: -25, twist: -10, lean: 45,
+        hilt: [0.95, 1.15, 0.05], blade: [0, 2], leftHand: [0.38, 1.20, -0.08], view: 160 })),
+    fab("fabris_quarta", "Quarta", "Fourth", ["quarta guardia"],
+      "plate 13, p. 40, right figure (Ch. 31, “a guard in Fourth, the last of the four guards”)",
+      "Quarta: hand turned nails up, arm out before you, chest turned more to the opponent, left hand raised by the head.",
+      Object.assign({}, R, { stance: 0.70, width: 0.26, crouch: 0.20, shift: 0.02, turn: -10, twist: -5, lean: 15,
+        hilt: [0.80, 1.20, 0.00], blade: [0, 0], roll: 90, leftHand: [0.22, 1.62, -0.12], view: 150 })),
+  );
+})();
+
+// ---- Player edits, fourth batch: Fabris (baked 2026-11-19 from stance-off-poses (6).json, saved in Chrome) ----
+window.BAKED_EDITS_4 = [
+  {"name":"Prima (right) v1","saved":"2026-11-19T21:42:38.057Z","guard":"fabris_prima","side":"right","vi":0,"pose":{"rapier":true,"lead":"right","stance":0.13,"width":0.2,"crouch":0.05,"shift":-0.25,"turn":-30,"twist":-10,"lean":60,"headNod":20,"hilt":[0.68,1.32,0.12],"blade":[0,1],"roll":-150,"leftHand":[0.25,1.24,-0.34],"view":160,"elbowR":-89}},
+  {"name":"Seconda (right) v1","saved":"2026-11-19T21:43:37.991Z","guard":"fabris_seconda","side":"right","vi":0,"pose":{"rapier":true,"lead":"right","stance":0.55,"width":0.2,"crouch":0.14,"shift":-0.25,"turn":-30,"twist":-10,"lean":60,"headNod":15,"hilt":[0.66,1.3,0.08],"blade":[0,-2],"roll":-90,"leftHand":[0.22,1.18,-0.36],"view":160}},
+  {"name":"Terza (right) v1","saved":"2026-11-19T21:44:42.184Z","guard":"fabris_terza","side":"right","vi":0,"pose":{"rapier":true,"lead":"right","stance":0.7,"width":0.24,"crouch":0.23,"shift":-0.24,"turn":-25,"twist":-10,"lean":45,"hilt":[0.73,1.1,0.05],"blade":[0,2],"leftHand":[0.05,1.18,-0.26],"view":160}},
+  {"name":"Quarta (right) v1","saved":"2026-11-19T21:47:15.164Z","guard":"fabris_quarta","side":"right","vi":0,"pose":{"rapier":true,"lead":"right","stance":0.7,"width":0.26,"crouch":0.2,"shift":0.02,"turn":-39,"twist":2,"lean":15,"hilt":[0.785,1.05,0.019],"blade":[-1,0],"roll":90,"leftHand":[0.129,1.36,-0.2],"view":150,"elbowL":56}},
+];
+for (const e of window.BAKED_EDITS_4) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g || !e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  if (e.addVariant) g.poses.push(e.pose);
+  else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
+}
+// ---- Extra built-in plates (the player can choose them in the editor, and pose a variant against them) ----
+// g.extraPlates: alternative plates for a guard. Fabris: the neighbouring chapter's figure for each guard. Each is also the
+// plate for the guard's 2nd variant (g.variantPlates[1]), used as soon as the player adds that variant in the editor.
+(function () {
+  const FAB = "Salvator Fabris, Lo Schermo (1606), engraving · scan via Guy Windsor / Wiktenauer · Public domain";
+  const extra = {
+    fabris_prima:   { id: "pl1",  file: "fabris_prima_pl1",   plate: "plate 1, p. 28, right figure (Ch. 19, “the guard in prime formed in drawing the sword from the scabbard”)" },
+    fabris_seconda: { id: "pl3",  file: "fabris_seconda_pl3", plate: "plate 3, p. 30, right figure (Ch. 21, “the guard in second, arising from the guard in first”)" },
+    fabris_terza:   { id: "pl9",  file: "fabris_terza_pl9",   plate: "plate 9, p. 36, right figure (Ch. 27, “the guard in third, which arises from the guard in first”)" },
+    fabris_quarta:  { id: "pl14", file: "fabris_quarta_pl14", plate: "plate 14, p. 41, right figure (Ch. 32, “an extended guard in Fourth”)" },
+  };
+  for (const id in extra) {
+    const g = window.GUARDS.find((x) => x.id === id), x = extra[id];
+    if (!g) continue;
+    const p = { id: x.id, src: "assets/plates/" + x.file + ".jpg", plate: x.plate, credit: FAB };
+    g.extraPlates = [p];
+    g.variantPlates = Object.assign({}, g.variantPlates, { 1: { src: p.src, plate: p.plate } });
+  }
+  // Variant 2 of each Fabris guard, posed after its extra plate (restored at the player's request so they can edit it).
+  const R = { rapier: true, lead: "right" };
+  const v2 = {
+    fabris_prima: Object.assign({}, R, { stance: 0.55, width: 0.20, crouch: 0.14, shift: -0.04, turn: -30, twist: -10, lean: 45,
+      hilt: [0.45, 1.65, 0.05], blade: [0, -10], roll: -150, poleR: [0.3, 0.5, 1], leftHand: [0.52, 1.20, -0.10], view: 160 }),
+    fabris_terza: Object.assign({}, R, { stance: 0.75, width: 0.24, crouch: 0.22, shift: 0.02, turn: -25, twist: -10, lean: 25,
+      hilt: [0.80, 1.10, 0.08], blade: [0, 12], leftHand: [0.30, 1.22, -0.10], view: 160 }),
+    fabris_quarta: Object.assign({}, R, { stance: 0.75, width: 0.26, crouch: 0.22, shift: 0.04, turn: -15, twist: -5, lean: 35,
+      hilt: [1.00, 1.15, 0.00], blade: [0, 0], roll: 90, leftHand: [0.00, 1.45, -0.22], view: 150 }),
+  };
+  for (const id in v2) {
+    const g = window.GUARDS.find((x) => x.id === id);
+    if (g && (g.poses || []).length === 1) g.poses.push(v2[id]);
+  }
+})();
+
+// ---- Player edits, fifth batch: Fabris variant 2 (baked 2026-11-19 from stance-off-poses (7).json, saved in Chrome) ----
+// Applied after the restored variant-2 poses above, so the player's versions win.
+window.BAKED_EDITS_5 = [
+  {"name":"Prima (right) v2","saved":"2026-11-19T22:08:00.015Z","guard":"fabris_prima","side":"right","vi":1,"pose":{"rapier":true,"lead":"right","stance":0.18,"width":0.11,"crouch":0.06,"shift":-0.25,"turn":4,"twist":-10,"lean":55,"hilt":[0.29,1.472,0.387],"blade":[35,-0.5],"roll":-150,"poleR":[-0.274,1.036,0.44],"leftHand":[0.476,1.125,-0.151],"view":160,"kneeL":43,"elbowR":-8,"headTurn":27,"sideLean":-38,"footLFwd":-0.12,"footLSide":-0.09}},
+  {"name":"Terza (right) v2","saved":"2026-11-19T22:10:54.898Z","guard":"fabris_terza","side":"right","vi":1,"pose":{"rapier":true,"lead":"right","stance":0.75,"width":0.24,"crouch":0.22,"shift":0.02,"turn":-46,"twist":17,"lean":25,"hilt":[0.788,0.93,0.158],"blade":[6,16],"leftHand":[0.326,1.22,-0.239],"view":160,"footLFwd":0.05,"footLSide":-0.3}},
+  {"name":"Quarta (right) v2","saved":"2026-11-19T22:14:52.732Z","guard":"fabris_quarta","side":"right","vi":1,"pose":{"rapier":true,"lead":"right","stance":0.25,"width":0.26,"crouch":0.22,"shift":-0.5,"turn":-15,"twist":-5,"lean":57,"hilt":[0.473,1.127,-0.004],"blade":[1.5,3.4],"roll":90,"leftHand":[-0.16,1.174,-0.26],"view":150,"elbowL":43,"headNod":-9,"footLFwd":-0.36}},
+];
+for (const e of window.BAKED_EDITS_5) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g || !e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  if (e.addVariant) g.poses.push(e.pose);
+  else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
+}

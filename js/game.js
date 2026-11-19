@@ -55,7 +55,7 @@
   // Costume for a fencer in the game. With "Mixed outfits" (Settings, "unfairly hard") any fencer may wear either tradition's
   // clothes and sash colour, so a German guard can't be told from an Italian one by dress. Extra hard.
   function costumeFor(g) {
-    const t = settings.mixLooks ? (Math.random() < 0.5 ? "german" : "italian") : g.tradition;
+    const keys = Object.keys(T), t = settings.mixLooks ? keys[Math.floor(Math.random() * keys.length)] : g.tradition;
     const look = Looks.randomLook(t);
     // with Mixed outfits, German-style fencers sometimes wear the Italian chaperone (in place of a cap)
     if (settings.mixLooks && look.style === "meyer" && Math.random() < 0.3) {
@@ -103,7 +103,7 @@
   // Setup screen (after Bout / Survival): difficulty and masters. "Again" on the results skips it.
   let setupMode = "bout";
   const TIER_NOTES = {
-    novice: "8 seconds a guard · one wrong answer from the other tradition · the plate's own viewpoint",
+    novice: "8 seconds a guard · one wrong answer from another tradition · the plate's own viewpoint",
     scholar: "5 seconds a guard · wrong answers from the same tradition · three camera angles",
     master: "2 seconds a guard · look-alike guards as wrong answers · any camera angle",
   };
@@ -157,8 +157,8 @@
     if (!box.childElementCount) {
       for (const m of M) {
         const b = document.createElement("button");
-        // medallion: Meyer from his own woodcut, Fiore's crowned master (Getty), Liechtenauer a wax seal (no likeness survives)
-        const pic = { liechtenauer: "assets/ui/master_liechtenauer.png", fiore: "assets/ui/master_fiore.jpg", meyer: "assets/ui/master_meyer.jpg" }[m.id];
+        // medallion: Meyer from his own woodcut, Fiore's crowned master (Getty), Liechtenauer a wax seal (no likeness survives); I.33 the priest from fol. 17r
+        const pic = { liechtenauer: "assets/ui/master_liechtenauer.png", fiore: "assets/ui/master_fiore.jpg", meyer: "assets/ui/master_meyer.jpg", i33: "assets/ui/master_i33.jpg", fabris: "assets/ui/master_fabris.jpg" }[m.id];
         b.dataset.id = m.id; b.className = "master-medal";
         b.innerHTML = (pic ? `<img src="${pic}" alt="">` : "") + `<span>${m.name}</span>`; // names are fixed data
         b.setAttribute("aria-pressed", "false");
@@ -254,7 +254,8 @@
   function distractors(g) {
     // Wrong options come from the selected masters; only top up from the rest if the pool is too small.
     // Equivalent guards (window.EQUIVALENT) are never offered alongside the answer: that would be two right tiles.
-    const others = run.pool.filter((x) => !sameGuard(x.id, g.id));
+    // Guards that share a name (Fabris's Prima/Quarta and the I.33 Prima/Quarta) never appear together either.
+    const others = run.pool.filter((x) => !sameGuard(x.id, g.id) && x.name !== g.name);
     let first = [];
     // Novice: two from the same tradition and one from the other (an easier one to rule out)
     if (run.tier === "novice") first = shuffle(others.filter((x) => x.tradition === g.tradition)).slice(0, 2)
@@ -264,16 +265,18 @@
       const twins = window.TWINS.filter((t) => t.includes(g.id)).flat().filter((id) => id !== g.id).map((id) => byId[id]).filter(Boolean);
       first = twins.concat(shuffle(others.filter((x) => x.tradition === g.tradition && !twins.includes(x))));
     }
-    const picks = (run.tier === "master" ? first : shuffle(first)).slice(0, 3);
-    for (const x of shuffle(others)) if (picks.length < 3 && !picks.includes(x)) picks.push(x);
-    for (const x of shuffle(G.filter((x) => !sameGuard(x.id, g.id)))) if (picks.length < 3 && !picks.includes(x)) picks.push(x);
+    const picks = [], ok = (x) => !picks.includes(x) && x.name !== g.name && !picks.some((p) => p.name === x.name);
+    for (const x of (run.tier === "master" ? first : shuffle(first))) if (picks.length < 3 && ok(x)) picks.push(x);
+    for (const x of shuffle(others)) if (picks.length < 3 && ok(x)) picks.push(x);
+    for (const x of shuffle(G.filter((x) => !sameGuard(x.id, g.id)))) if (picks.length < 3 && ok(x)) picks.push(x);
     // Every tier: at least two wrong options share the answer's tradition (a German guard gets 3–4 German options),
     // as far as the selected masters allow.
     const same = shuffle(others.filter((x) => x.tradition === g.tradition && !picks.includes(x)));
     while (picks.filter((x) => x.tradition === g.tradition).length < 2 && same.length) {
       let i = -1; for (let k = picks.length - 1; k >= 0; k--) if (picks[k].tradition !== g.tradition) { i = k; break; }
       if (i < 0) break;
-      picks[i] = same.shift();
+      const nx = same.shift(); if (picks.some((p, k) => k !== i && p.name === nx.name)) continue;
+      picks[i] = nx;
     }
     return picks;
   }
@@ -775,6 +778,7 @@
   const demo = (location.hash.match(/demo=(\w+)/) || [])[1];
   if (demo && demo !== "hall" && !me()) setPlayer("Tester"); // screenshot hooks need a player
   if (/practice/.test(location.hash)) settings.masters = [M[1].id]; // not saved
+  { const only = (location.hash.match(/only=(\w+)/) || [])[1]; if (only) settings.masters = [only]; } // screenshot hook, not saved
   if (/[&#]ms/.test(location.hash)) settings.view = "manuscript"; // not saved
   if (/narrow/.test(location.hash)) $("#app").style.maxWidth = "360px"; // ~phone width for screenshots
   if (demo === "names") {
@@ -798,6 +802,18 @@
     run.guard = byId.langort; run.locked = false; run.t0 = performance.now(); run.tMax = 8;
     answer("posta_longa");
     document.title = `equiv correct=${run.correct} combo=${run.combo} clash=${clash} fb="${$("#fb-name").textContent}"`;
+  } else if (demo === "names2") {
+    // Test hook: option sets must never hold two guards with the same name (Fabris Prima/Quarta vs I.33 Prima/Quarta)
+    settings.reducedMotion = true; settings.masters = allMasterIds.slice(); startRun("bout");
+    let bad = 0, n = 0;
+    for (const tier of ["novice", "scholar", "master"]) {
+      run.tier = tier;
+      for (const g of G) for (let i = 0; i < 40; i++) {
+        const names = [g].concat(distractors(g)).map((x) => x.name); n++;
+        if (new Set(names).size !== names.length) bad++;
+      }
+    }
+    document.title = `names2 sets=${n} dupes=${bad}`;
   } else if (demo === "thanks") { show("support"); renderSupport(true); }
   else if (demo === "zoom") {
     // Test hook: open the first Salle variant full screen, then drag it 150px (≈90° turn)

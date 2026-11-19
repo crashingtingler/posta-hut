@@ -91,6 +91,7 @@
 
   <section>
     <h2>Torso</h2>
+    <label class="hint" style="display:flex;gap:6px;align-items:center;margin:2px 0 6px"><input type="checkbox" id="carry" checked> Arms, sword and buckler move with the body (hips and torso changes carry them along)</label>
     <div id="s-torso"></div>
     <div class="row"><button id="mirror">Mirror the whole pose</button></div>
   </section>
@@ -101,6 +102,12 @@
     <p class="hint">Drag on the fencer to place the sword; the arms and body follow. Right-drag (or Alt+drag) turns the camera.</p>
     <div id="s-sword"></div>
     <div class="row"><button id="thumb">Thumb grip: turn the crossguard 90°</button><button id="roll0">Normal grip</button></div>
+    <div id="buckler-box" style="display:none"><h2 style="margin-top:10px">Buckler</h2>
+    <p class="hint">Sword and buckler (I.33): where the left fist holds the buckler, and which way its face points.</p>
+    <div id="s-buckler"></div></div>
+    <div id="lefthand-box" style="display:none"><h2 style="margin-top:10px">Left hand</h2>
+    <p class="hint">Rapier (Fabris): where the free left hand is held.</p>
+    <div id="s-lefthand"></div></div>
     <h2 style="margin-top:10px">Elbows</h2>
     <p class="hint">Swing each elbow around the line from shoulder to hand (0° = automatic). The hand stays on the grip.</p>
     <div id="s-elbows"></div>
@@ -212,31 +219,38 @@
   // ---------- sliders ----------
   const SLIDERS = {
     "s-head": [
-      ["Turn L / R", ["headTurn"], -80, 80, 1, "°"], ["Nod up / down", ["headNod"], -45, 45, 1, "°"], ["Lean L / R", ["headLean"], -40, 40, 1, "°"],
+      ["Turn L / R", ["headTurn"], -150, 150, 1, "°"], ["Nod up / down", ["headNod"], -90, 90, 1, "°"], ["Lean L / R", ["headLean"], -90, 90, 1, "°"],
     ],
     "s-torso": [
-      ["Chest twist", ["twist"], -90, 90, 1, "°"], ["Lean fwd / back", ["lean"], -20, 50, 1, "°"], ["Lean R / L", ["sideLean"], -40, 40, 1, "°"],
+      ["Chest twist", ["twist"], -180, 180, 1, "°"], ["Lean fwd / back", ["lean"], -90, 135, 1, "°"], ["Lean R / L", ["sideLean"], -90, 90, 1, "°"],
     ],
     "s-sword": [
-      ["Hilt forward", ["hilt", 0], -0.8, 1.2, 0.01, "m"], ["Hilt height", ["hilt", 1], 0.2, 2.2, 0.01, "m"], ["Hilt side", ["hilt", 2], -0.7, 0.7, 0.01, "m"],
+      ["Hilt forward", ["hilt", 0], -1.5, 2.0, 0.01, "m"], ["Hilt height", ["hilt", 1], -0.2, 3.0, 0.01, "m"], ["Hilt side", ["hilt", 2], -1.2, 1.2, 0.01, "m"],
       ["Blade turn", ["blade", 0], -180, 180, 1, "°"], ["Blade rise", ["blade", 1], -90, 90, 1, "°"],
       ["Blade roll", ["roll"], -180, 180, 1, "°"],
+    ],
+    "s-buckler": [
+      ["Buckler forward", ["buckler", 0], -1.5, 2.0, 0.01, "m"], ["Buckler height", ["buckler", 1], -0.2, 3.0, 0.01, "m"], ["Buckler side", ["buckler", 2], -1.2, 1.2, 0.01, "m"],
+      ["Buckler face turn", ["bucklerFace", 0], -180, 180, 1, "°"], ["Buckler face tilt", ["bucklerFace", 1], -90, 90, 1, "°"],
+    ],
+    "s-lefthand": [
+      ["Left hand forward", ["leftHand", 0], -1.5, 2.0, 0.01, "m"], ["Left hand height", ["leftHand", 1], -0.2, 3.0, 0.01, "m"], ["Left hand side", ["leftHand", 2], -1.2, 1.2, 0.01, "m"],
     ],
     "s-elbows": [
       ["Right elbow", ["elbowR"], -180, 180, 1, "°"], ["Left elbow", ["elbowL"], -180, 180, 1, "°"],
     ],
     "s-hips": [
-      ["Hips turn", ["turn"], -90, 90, 1, "°"], ["Weight fwd", ["shift"], -0.25, 0.3, 0.01, "m"], ["Crouch", ["crouch"], 0, 0.4, 0.01, "m"],
+      ["Hips turn", ["turn"], -180, 180, 1, "°"], ["Weight fwd", ["shift"], -1.0, 1.0, 0.01, "m"], ["Crouch", ["crouch"], -0.3, 1.0, 0.01, "m"],
     ],
     "s-legs": [
-      ["Step length", ["stance"], 0.2, 1.4, 0.01, "m"], ["Feet apart", ["width"], 0.05, 0.6, 0.01, "m"],
+      ["Step length", ["stance"], -0.5, 2.5, 0.01, "m"], ["Feet apart", ["width"], -0.3, 1.5, 0.01, "m"],
     ],
     "s-knees": [
-      ["Right knee", ["kneeR"], -90, 90, 1, "°"], ["Left knee", ["kneeL"], -90, 90, 1, "°"],
+      ["Right knee", ["kneeR"], -180, 180, 1, "°"], ["Left knee", ["kneeL"], -180, 180, 1, "°"],
     ],
     "s-feet": [
-      ["Right fwd / back", ["footRFwd"], -0.4, 0.4, 0.01, "m"], ["Right in / out", ["footRSide"], -0.3, 0.3, 0.01, "m"], ["Right foot turn", ["footRTurn"], -60, 90, 1, "°"],
-      ["Left fwd / back", ["footLFwd"], -0.4, 0.4, 0.01, "m"], ["Left in / out", ["footLSide"], -0.3, 0.3, 0.01, "m"], ["Left foot turn", ["footLTurn"], -60, 90, 1, "°"],
+      ["Right fwd / back", ["footRFwd"], -1.0, 1.0, 0.01, "m"], ["Right in / out", ["footRSide"], -0.8, 0.8, 0.01, "m"], ["Right foot turn", ["footRTurn"], -180, 180, 1, "°"],
+      ["Left fwd / back", ["footLFwd"], -1.0, 1.0, 0.01, "m"], ["Left in / out", ["footLSide"], -0.8, 0.8, 0.01, "m"], ["Left foot turn", ["footLTurn"], -180, 180, 1, "°"],
     ],
   };
   // −/+ buttons: one step per click (Shift = ×10); holding repeats; one undo step per press
@@ -256,12 +270,12 @@
       row.className = "slider num";
       row.innerHTML = `<label>${label}</label><button class="step" title="−${step}${unit} (Shift: ×10, hold to repeat)">−</button><input type="range" min="${min}" max="${max}" step="${step}"><button class="step" title="+${step}${unit} (Shift: ×10, hold to repeat)">+</button><output></output>`;
       const inp = row.querySelector("input"), out = row.querySelector("output");
-      inp.addEventListener("input", () => { setPath(pose, path, +inp.value); refresh(false); });
+      inp.addEventListener("input", () => { setPath(pose, path, +inp.value); carryUpper(path); refresh(false); });
       inp.addEventListener("change", () => commit()); // one undo step per slider release
       const [minus, plus] = row.querySelectorAll(".step");
       const nudge = (dir, big) => {
         const v = Math.min(max, Math.max(min, +((getPath(pose, path) ?? 0) + dir * step * (big ? 10 : 1)).toFixed(4)));
-        setPath(pose, path, v); refresh(false);
+        setPath(pose, path, v); carryUpper(path); refresh(false);
       };
       holdRepeat(minus, (big) => nudge(-1, big)); holdRepeat(plus, (big) => nudge(1, big));
       inputs.push({ inp, out, path, unit, step });
@@ -269,7 +283,35 @@
     }
   }
   const getPath = (o, p) => p.reduce((a, k) => (a == null ? a : a[k]), o);
-  const setPath = (o, p, v) => { if (p.length === 1) o[p[0]] = v; else o[p[0]][p[1]] = v; };
+  const setPath = (o, p, v) => { if (p.length === 1) o[p[0]] = v; else { if (!o[p[0]]) o[p[0]] = p[0] === "bucklerFace" ? [0, 0] : p[0] === "leftHand" ? Fencer3D.solve(o).handL.toArray().map((x) => +x.toFixed(3)) : [0, 0, 0]; o[p[0]][p[1]] = v; } };
+
+  // ---------- the body carries what it holds ----------
+  // Changing the hips or torso (turn, weight, crouch, twist, lean, side lean) moves everything the chest carries —
+  // sword, hands, buckler and elbow directions — with it, so leaning forward doesn't mean re-placing the sword.
+  // Worked out from the pose at the start of the change (the last undo step), so dragging a slider doesn't drift.
+  const CARRIERS = ["turn", "shift", "crouch", "twist", "lean", "sideLean"];
+  function chestFrame(p) {
+    const s = Fencer3D.solve(p);
+    const m = new T.Matrix4().makeBasis(s.fwd, s.spine, s.right).setPosition(s.waist);
+    return m;
+  }
+  function carryUpper(path) {
+    if (!$("#carry").checked || !CARRIERS.includes(path[0]) || !committed) return;
+    const base = committed, M = chestFrame(pose).multiply(chestFrame(base).invert());
+    const R = new T.Matrix4().extractRotation(M);
+    const r3 = (v) => +v.toFixed(3);
+    const pt = (a) => { const v = new T.Vector3(...a).applyMatrix4(M); return [r3(v.x), r3(v.y), r3(v.z)]; };
+    const dir = (a) => { const v = new T.Vector3(...a).applyMatrix4(R); return [r3(v.x), r3(v.y), r3(v.z)]; };
+    const ang = ([yaw, pitch]) => {
+      const d = new T.Vector3(Math.cos(pitch * Math.PI / 180) * Math.cos(yaw * Math.PI / 180), Math.sin(pitch * Math.PI / 180),
+        Math.cos(pitch * Math.PI / 180) * Math.sin(yaw * Math.PI / 180)).applyMatrix4(R);
+      return [+(Math.atan2(d.z, d.x) * 180 / Math.PI).toFixed(1), +(Math.asin(Math.max(-1, Math.min(1, d.y))) * 180 / Math.PI).toFixed(1)];
+    };
+    pose.hilt = pt(base.hilt); pose.blade = ang(base.blade);
+    if (base.buckler) { pose.buckler = pt(base.buckler); pose.bucklerFace = ang(base.bucklerFace || [0, 0]); }
+    if (base.rapier) pose.leftHand = pt(base.leftHand || Fencer3D.solve(base).handL.toArray());
+    for (const k of ["poleR", "poleL"]) if (base[k]) pose[k] = dir(base[k]);
+  }
   function syncSliders() {
     for (const s of inputs) {
       const v = getPath(pose, s.path) ?? 0;
@@ -311,14 +353,16 @@
     fig.set(pose, { frame: !!reframe });
     const s = Fencer3D.solve(pose), B = Fencer3D.B;
     hiltMark.position.copy(s.H);
-    tipMark.position.copy(s.H.clone().addScaledVector(s.d, B.blade));
+    tipMark.position.copy(s.H.clone().addScaledVector(s.d, s.sw.blade));
+    $("#buckler-box").style.display = pose.buckler ? "" : "none";
+    $("#lefthand-box").style.display = pose.rapier ? "" : "none";
     fig.render();
     syncSliders(); syncPoles();
     // readout
     const ang = (a, j, b) => Math.round(a.clone().sub(j).angleTo(b.clone().sub(j)) * 180 / Math.PI);
     const gapCm = (want, got) => Math.round(want.distanceTo(got) * 100);
     const deg = (v) => Math.round(Math.atan2(v.z, v.x) * 180 / Math.PI);
-    const hR = s.H.clone().addScaledVector(s.d, -B.handA), hL = s.H.clone().addScaledVector(s.d, -B.handB);
+    const hR = s.handR, hL = s.handL; // the hands' targets (one hand on an arming sword; the left holds the buckler)
     const gR = gapCm(hR, s.armR.end), gL = gapCm(hL, s.armL.end);
     const bad = (g) => (g > 1 ? `<span class="bad">${g} cm — out of reach</span>` : `${g} cm`);
     $("#readout").innerHTML =
@@ -419,7 +463,7 @@
     if (!p) return;
     if (drag.kind === "move") {
       const n = p.add(drag.offset);
-      pose.hilt = [clamp(n.x, -0.8, 1.2), clamp(n.y, 0.2, 2.2), clamp(n.z, -0.7, 0.7)].map((x) => +x.toFixed(3));
+      pose.hilt = [clamp(n.x, -1.5, 2.0), clamp(n.y, -0.2, 3.0), clamp(n.z, -1.2, 1.2)].map((x) => +x.toFixed(3));
     } else aimAt(p);
     refresh(false);
   });
@@ -663,6 +707,7 @@ ${clash.join(", ")}`)) return;
   }
   function choiceNow() {
     const c = readJ(CKEY)[plateKey()], list = readPlates()[plateKey()] || [];
+    if (c && c.startsWith("x:") && (guard.extraPlates || []).some((p) => "x:" + p.id === c)) return c; // an extra built-in plate
     if (c === "none" || c === "builtin" || list.some((p) => pid(p) === c)) return c === "builtin" && !builtin() ? "none" : c;
     return builtin() ? "builtin" : list.length ? pid(list[0]) : "none";
   }
@@ -670,6 +715,7 @@ ${clash.join(", ")}`)) return;
     const c = choiceNow();
     if (c === "none") return null;
     if (c === "builtin") return builtin();
+    if (c.startsWith("x:")) { const x = (guard.extraPlates || []).find((p) => "x:" + p.id === c); return x ? { src: x.src, name: x.plate, credit: x.credit } : null; }
     const p = (readPlates()[plateKey()] || []).find((x) => pid(x) === c);
     return p ? { src: p.src, name: p.name, credit: "Your plate" + (p.name ? " (" + p.name + ")" : "") } : null;
   }
@@ -677,7 +723,7 @@ ${clash.join(", ")}`)) return;
     const all = readJ(CKEY); all[plateKey()] = c;
     if (!writeJ(CKEY, all)) { toast("Couldn’t save — browser storage is unavailable"); return; }
     // keep this page's guard data in step (the game picks it up on reload via js/pose-edits.js)
-    const m = plateInUse(), md = m ? { src: m.src, credit: m.credit, player: c !== "builtin" } : undefined;
+    const m = plateInUse(), md = m ? { src: m.src, credit: m.credit, player: c !== "builtin" && !c.startsWith("x:") } : undefined;
     if (side === "left") { if (!guard.sides || !guard.sides.left) guard.sideUse = guard.sideUse || { right: true, left: false }; guard.sides = guard.sides || {}; guard.sides.left = guard.sides.left || {}; guard.sides.left.manuscript = md; }
     else guard.manuscript = md;
     renderPlates(); toast(c === "none" ? "No plate for this pose" : "Plate chosen — reload the game to see it there");
@@ -711,6 +757,8 @@ ${clash.join(", ")}`)) return;
       d.appendChild(row); box.appendChild(d);
     };
     if (b) item("builtin", b.src, b.name, false);
+    // the guard's extra built-in plates (e.g. Fabris's neighbouring figures): choose one, or overlay it to pose a variant
+    for (const x of guard.extraPlates || []) item("x:" + x.id, x.src, "Built-in alternative (" + x.plate + ")", false);
     list.forEach((p, i) => item(pid(p), p.src, p.name || "your plate", true, i));
     item("none", null, "No plate", false);
   }
@@ -814,6 +862,15 @@ ${clash.join(", ")}`)) return;
     pe("pointerdown", 600, 400); pe("pointermove", 640, 425); pe("pointerup", 640, 425);
     view.dispatchEvent(new WheelEvent("wheel", { deltaY: -100, bubbles: true, cancelable: true }));
     document.title = `transform=${$("#overlay").style.transform} swordUnchanged=${h0 === JSON.stringify(pose.hilt)}`;
+  }, 300);
+  if (start.includes("carrytest")) setTimeout(() => { // test hook: lean +15 and crouch +0.1 by slider; the sword must keep its place relative to the chest
+    const rel = () => { const s = Fencer3D.solve(pose); const v = s.H.clone().sub(s.waist); return [v.dot(s.fwd), v.dot(s.spine), v.dot(s.right)].map((x) => x.toFixed(3)).join(","); };
+    const slider = (lbl) => [...document.querySelectorAll(".slider")].find((r) => r.querySelector("label").textContent === lbl).querySelector("input");
+    const r0 = rel(), h0 = pose.hilt.join(",");
+    let inp = slider("Lean fwd / back"); inp.value = +inp.value + 15; inp.dispatchEvent(new Event("input")); inp.dispatchEvent(new Event("change"));
+    inp = slider("Crouch"); inp.value = +inp.value + 0.1; inp.dispatchEvent(new Event("input")); inp.dispatchEvent(new Event("change"));
+    const s = Fencer3D.solve(pose), gap = Math.round(s.handR.distanceTo(s.armR.end) * 100);
+    document.title = `rel before=${r0} after=${rel()} hilt ${h0} -> ${pose.hilt.join(",")} gapR=${gap}cm`;
   }, 300);
   if (start.includes("steptest")) setTimeout(() => { // test hook: + on hilt height, shift + , then undo once
     const row = [...document.querySelectorAll(".slider.num")].find((r) => r.querySelector("label").textContent === "Hilt height");

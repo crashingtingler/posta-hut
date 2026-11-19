@@ -6,12 +6,14 @@ manuscript plates.
 
 **Play:** https://crashingtingler.github.io/posta-hut/
 
-Masters: Johannes Liechtenauer, Fiore dei Liberi and Joachim Meyer.
+Masters: Johannes Liechtenauer, Fiore dei Liberi and Joachim Meyer — plus the seven sword-and-buckler wards of Royal Armouries Ms. I.33 and the four rapier guards of Salvator Fabris.
 
 ## Sources and credits
 
 - **Fiore dei Liberi**, *Fior di Battaglia* (c. 1404–10), J. Paul Getty Museum, Ms. Ludwig XV 13 — Getty Open Content (public domain).
 - **Joachim Meyer**, *Gründtliche Beschreibung der Kunst des Fechtens* (Strasbourg, 1570) — Leipzig University Library copy, via Wiktenauer (public domain). The logo's crown medallion and the "Meyer 1570" lettering are taken from this book.
+- **Royal Armouries Ms. I.33** (*Walpurgis Fechtbuch*, Franconia, c. 1300) — scans by the Royal Armouries; listed as public domain (PD-Art) on Wikimedia Commons. Ward identifications follow the manuscript text (Dieter Bachmann's transcription and translation on Wiktenauer).
+- **Salvator Fabris**, *Lo Schermo, overo Scienza d'Arme* (Copenhagen, 1606) — engravings by Nicolaus Andrea of Flensburg, Jan van Halbeeck and Francesco Valesio; scan via Guy Windsor / Wiktenauer (public domain). Guards follow Book 1, Part 1, Chs. 19–32 (translation by A. F. Johnson and Michael Chidester). The 3D fencers wear early-1600s dress; Fabris draws them nude.
 - Guard identifications cross-checked with Wiktenauer, Guy Windsor / School of European Swordsmanship, and HEMA 101 (text references only).
 - **Coin:** half Portugalöser, Hamburg 1679 — National Numismatic Collection, Smithsonian (public domain).
 - **Fonts:** Alegreya, Alegreya SC and Pirata One — SIL Open Font License.

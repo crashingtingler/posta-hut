@@ -76,7 +76,12 @@ window.PoseEdits = (function () {
     const [id, s] = key.split("|"), g = window.GUARDS.find((x) => x.id === id), c = choice[key];
     if (!g || c === "builtin") continue;
     let m;
-    if (c !== "none") {
+    if (c.startsWith("x:")) { // one of the guard's extra built-in plates (g.extraPlates)
+      const p = (g.extraPlates || []).find((x) => "x:" + x.id === c);
+      if (!p) continue;
+      m = { src: p.src, credit: p.credit };
+      if (s !== "left") g.plate = p.plate; else if (g.sides && g.sides.left) g.sides.left.plate = p.plate;
+    } else if (c !== "none") {
       const p = (userPlates[key] || []).find((x) => (x.id || x.added) === c);
       if (!p) continue;
       m = { src: p.src, credit: "Player's plate" + (p.name ? " (" + p.name + ")" : ""), player: true };

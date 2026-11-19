@@ -8,6 +8,10 @@
 //   crouch: how far the hips drop; turn: hips turned (deg, + = right side back)
 //   twist: extra chest rotation on top of the hips; lean: forward lean (deg)
 //   hilt: [x, y, z] crossguard position; blade: [yaw, pitch] (deg; yaw + = toward the right side)
+//   buckler: [x, y, z] the left fist holding a buckler (sword and buckler, I.33). With it the sword is a
+//            one-handed arming sword held in the right hand only; bucklerFace: [yaw, pitch] the way the
+//            buckler's face points (default: toward the opponent).
+//   rapier: true   a one-handed rapier (long thin blade, ringed hilt); leftHand: [x, y, z] where the free left hand is
 (function () {
   const T = window.THREE;
   const V = (x, y, z) => new T.Vector3(x, y, z);
@@ -16,6 +20,13 @@
   const B = { thigh: 0.45, shin: 0.44, upper: 0.30, fore: 0.29, hipW: 0.095, shW: 0.185, torso: 0.52, waist: 0.2,
               neck: 0.07, headR: 0.1, pelvisH: 0.96, ankleH: 0.07, grip: 0.25, blade: 0.96, cross: 0.12,
               handA: 0.045, handB: 0.19 };
+  // one-handed arming sword (sword and buckler): shorter blade and grip, narrower cross, one hand
+  const ARMING = { blade: 0.78, grip: 0.13, cross: 0.095, handA: 0.055, pommel: 0.026 };
+  const LONG = { blade: B.blade, grip: B.grip, cross: B.cross, handA: B.handA, pommel: 0.032 };
+  // rapier (Fabris 1606): long narrow blade, short grip, long quillons and side rings, one hand
+  const RAPIER = { blade: 1.08, grip: 0.12, cross: 0.13, handA: 0.05, pommel: 0.028, rapier: true };
+  const swordOf = (p) => (p && p.rapier ? RAPIER : p && p.buckler ? ARMING : LONG);
+  const BUCKLER_R = 0.15;
   const REST = { lead: "left", stance: 0.34, width: 0.22, crouch: 0.02, turn: 25, twist: 0, lean: 2,
                  hilt: [0.28, 0.86, 0.2], blade: [5, -62] };
 
@@ -46,6 +57,9 @@
     chest: new T.LatheGeometry([[0, 0], [0.82, 0], [0.92, 0.45], [1, 0.82], [0.72, 1], [0, 1]].map(([r, y]) => new T.Vector2(r, y)), 18),
     skirt: new T.CylinderGeometry(1, 1.25, 1, 18, 1, true),
     blade: new T.CylinderGeometry(0.004, 0.021, 1, 4),
+    disc: new T.CylinderGeometry(1, 1, 1, 28, 1), // buckler board (unit radius and thickness)
+    dome: new T.SphereGeometry(1, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), // buckler boss
+    rim: new T.TorusGeometry(1, 0.07, 6, 28), // buckler iron rim
   };
   GEO.seg.translate(0, 0.5, 0); GEO.blade.translate(0, 0.5, 0); GEO.cone.translate(0, 0.5, 0); GEO.skirt.translate(0, -0.5, 0);
 
@@ -140,8 +154,14 @@
     if (p.headNod) { const ax = look.clone().cross(headUp).normalize(); look.applyAxisAngle(ax, -p.headNod * DEG); headUp.applyAxisAngle(ax, -p.headNod * DEG); }
     if (p.headLean) headUp.applyAxisAngle(look, p.headLean * DEG);
 
-    const d = bladeDir(p.blade), H = V(...p.hilt);
-    const handR = H.clone().addScaledVector(d, -B.handA), handL = H.clone().addScaledVector(d, -B.handB);
+    const d = bladeDir(p.blade), H = V(...p.hilt), sw = swordOf(p);
+    const handR = H.clone().addScaledVector(d, -sw.handA);
+    // sword and buckler: the left fist holds the buckler's grip behind the boss; otherwise both hands on the grip
+    // rapier: the free left hand is held up before the body (pose.leftHand places it)
+    const handL = p.buckler ? V(...p.buckler) : p.rapier ? (p.leftHand ? V(...p.leftHand)
+      : neck.clone().addScaledVector(fwd, 0.28).addScaledVector(right, -0.08).addScaledVector(spine, -0.12))
+      : H.clone().addScaledVector(d, -B.handB);
+    const bFace = p.buckler ? bladeDir(p.bucklerFace || [0, 0]) : null;
     // elbow direction hints; a pose can override them (world vectors) when an arm must cross in front of the body
     const poleR = p.poleR ? V(...p.poleR) : V(0, -1, 0).addScaledVector(right, 0.7).addScaledVector(fwd, -0.2);
     const poleL = p.poleL ? V(...p.poleL) : V(0, -1, 0).addScaledVector(right, -0.7).addScaledVector(fwd, -0.2);
@@ -166,7 +186,7 @@
     const legR = ik(hipR, footR, B.thigh, B.shin, toeR.clone().addScaledVector(UP, 0.1));
     // knee swing (deg): turn the knee about the hip-to-ankle line; the foot stays planted
     swing(hipL, legL, p.kneeL); swing(hipR, legR, p.kneeR);
-    return { pel, waist, neck, head, spine, right, fwd, hipFwd, hipRight, shR, shL, look, headUp, d, H, handR, handL,
+    return { pel, waist, neck, head, spine, right, fwd, hipFwd, hipRight, shR, shL, look, headUp, d, H, handR, handL, sw, bFace,
              armR, armL, hipL, hipR, legL, legR, toeL, toeR };
   }
 
@@ -214,6 +234,9 @@
     add("chapPatte", GEO.ball, M.chap, OUTLINE_THIN); add("chapTail", GEO.seg, M.chap, OUTLINE_THIN);
     for (let i = 0; i < 5; i++) add("spike" + i, GEO.cone, M.gold, OUTLINE_THIN);
     add("garter", GEO.seg, M.gold, OUTLINE_THIN); // Fiore's scholars: a gold garter just below the left knee
+    // I.33 (c. 1300): the scholar wears a hood with a shoulder cape and a pointed tail; the priest a tonsure
+    add("hood", GEO.ball, M.jacket, OUTLINE_THIN); add("hoodCape", GEO.ball, M.jacket, OUTLINE_THIN);
+    add("hoodTip", GEO.cone, M.jacket, OUTLINE_THIN); add("tonsure", GEO.ball, M.skin, null);
     // arms
     for (const s of ["L", "R"]) {
       add("shoulder" + s, GEO.ball, M["arm" + s]); add("upper" + s, GEO.seg, M["arm" + s]);
@@ -222,6 +245,11 @@
     // sword
     add("blade", GEO.blade, M.steel, OUTLINE_THIN); add("grip", GEO.seg, M.grip, OUTLINE_THIN);
     add("cross", GEO.seg, M.iron, OUTLINE_THIN); add("pommel", GEO.ball, M.iron, OUTLINE_THIN);
+    // buckler (sword and buckler guards only): a small round board with a domed iron boss and an iron rim
+    add("buckler", GEO.disc, M.wood = toon(0xb8925a), OUTLINE_THIN); add("boss", GEO.dome, M.iron, OUTLINE_THIN);
+    add("rim", GEO.rim, M.iron, null);
+    // rapier hilt: a side ring beside the blade and a knuckle bow in front of the hand
+    add("ring", GEO.rim, M.iron, OUTLINE_THIN); add("bow", GEO.rim, M.iron, OUTLINE_THIN);
 
     let look = { style: "fiore", bulk: 1 }, viewYaw = 22, w = 0, h = 0;
     const armNear = new T.Color(0xf1e9da), armFar = new T.Color(0xd9cfbd);
@@ -231,10 +259,11 @@
     // (body, sword tip and pommel), so every pose fills the frame from any angle.
     let fitPts = null;
     function framePose(p) {
-      const s = solve(p), tip = s.H.clone().addScaledVector(s.d, B.blade), pom = s.H.clone().addScaledVector(s.d, -B.grip);
+      const s = solve(p), tip = s.H.clone().addScaledVector(s.d, s.sw.blade), pom = s.H.clone().addScaledVector(s.d, -s.sw.grip);
       fitPts = [s.head.clone().addScaledVector(UP, 0.16), tip, pom, s.handR, s.handL, s.armR.joint, s.armL.joint,
                 s.shR, s.shL, s.legL.end, s.legR.end, s.legL.joint, s.legR.joint,
                 s.legL.end.clone().addScaledVector(s.toeL, 0.2).setY(0), s.legR.end.clone().addScaledVector(s.toeR, 0.2).setY(0)];
+      if (s.bFace) for (const v of [V(0, 1, 0), V(0, -1, 0), V(0, 0, 1), V(0, 0, -1)]) fitPts.push(s.handL.clone().addScaledVector(v, BUCKLER_R));
     }
     function setCamera() {
       const dist = 6.0, yaw = viewYaw * DEG;
@@ -278,7 +307,7 @@
         M[k].needsUpdate = true;
       }
       M.shin.color.set(lk.shin); M.shoe.color.set(lk.shoe || lk.shin); M.hair.color.set(lk.hair);
-      P.puffL.visible = P.puffR.visible = meyer;
+      P.puffL.visible = P.puffR.visible = meyer || lk.style === "fabris"; // Meyer's pluderhosen; Fabris-era Venetian breeches
       P.beard.visible = lk.beard > 0; P.ruff.visible = !!lk.ruff;
       P.mustL.visible = P.mustR.visible = !!lk.mustache;
       P.cap.visible = P.capTop.visible = !!lk.cap;
@@ -286,6 +315,8 @@
       for (const k of ["chapRoll", "chapTop", "chapPatte", "chapTail"]) P[k].visible = !!lk.chaperone;
       M.chap.color.set(lk.chapColor || "#7e2620");
       P.garter.visible = !!lk.garter;
+      P.hood.visible = P.hoodCape.visible = P.hoodTip.visible = !!lk.hood;
+      P.tonsure.visible = !!lk.tonsure;
       fig.set(fig.pose);
     };
 
@@ -303,13 +334,14 @@
           seg(P.garter, leg.joint.clone().addScaledVector(dn, 0.075), leg.joint.clone().addScaledVector(dn, 0.115), 0.057 * bk); }
         const mid = hip.clone().lerp(leg.joint, 0.45);
         const q = tmpQ.setFromUnitVectors(UP, leg.joint.clone().sub(hip).normalize()).clone();
-        ball(P["puff" + k], mid, 0.12 * bk, 0.21, 0.12 * bk, q);
+        const pr = look.style === "fabris" ? 0.095 : 0.12; // Venetian breeches: slimmer than pluderhosen, down to the knee
+        ball(P["puff" + k], look.style === "fabris" ? hip.clone().lerp(leg.joint, 0.55) : mid, pr * bk, look.style === "fabris" ? 0.24 : 0.21, pr * bk, q);
         const footQ = new T.Quaternion().setFromUnitVectors(V(1, 0, 0), toe);
         ball(P["foot" + k], leg.end.clone().addScaledVector(toe, 0.07).setY(0.04), 0.13, 0.042, 0.055, footQ);
       }
       // torso: hips follow the pelvis turn, chest adds twist and lean
       frame(P.hips, s.pel.clone().addScaledVector(UP, -0.06), s.hipFwd, UP, s.hipRight, 0.12 * bk, B.waist + 0.06, 0.16 * bk);
-      frame(P.skirt, s.waist, s.hipFwd, UP, s.hipRight, 0.135 * bk, meyer ? 0.12 : 0.27, 0.165 * bk);
+      frame(P.skirt, s.waist, s.hipFwd, UP, s.hipRight, 0.135 * bk, meyer || look.style === "fabris" ? 0.12 : look.style === "i33" ? 0.52 : 0.27, 0.165 * bk);
       frame(P.belt, s.waist, s.hipFwd, s.hipRight.clone().negate(), UP, 0.1 * bk, 0.122 * bk, 0.05);
       const chestBase = s.waist.clone().addScaledVector(s.spine, -0.03);
       frame(P.chest, chestBase, s.fwd, s.spine, s.right, 0.13 * bk, B.torso - B.waist + 0.04, 0.2 * bk);
@@ -351,6 +383,17 @@
         ball(P.chapPatte, at(-0.03, -0.02, -0.1), 0.05, 0.085, 0.02, hq);
         seg(P.chapTail, at(-0.1, 0.06, 0.05), at(-0.18, -0.22, 0.1), 0.018);
       }
+      // I.33 hood: covers the crown, back and sides of the head (face left open), a cape over the shoulders and
+      // the pointed tail (liripipe) sticking out behind; the priest has a shaved crown inside a ring of curls
+      if (look.hood) {
+        ball(P.hood, at(-0.078, 0.016), 0.092, 0.124, 0.108, hq);
+        ball(P.hoodCape, s.neck.clone().addScaledVector(s.spine, -0.06), 0.15 * bk, 0.07, 0.22 * bk,
+          new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(s.fwd, s.spine, s.right)));
+        const tb = at(-0.13, 0.0), tt = at(-0.25, -0.03);
+        P.hoodTip.position.copy(tb); P.hoodTip.quaternion.setFromUnitVectors(UP, tt.clone().sub(tb).normalize());
+        P.hoodTip.scale.set(0.03, tt.distanceTo(tb), 0.03);
+      }
+      if (look.tonsure) ball(P.tonsure, at(-0.025, 0.092), 0.058, 0.05, 0.058, hq);
       // arms (near/far shading decided from the camera position)
       const farL = camera.position.distanceTo(s.shL) > camera.position.distanceTo(s.shR);
       M.armL.color.copy(farL ? armFar : armNear); M.armR.color.copy(farL ? armNear : armFar);
@@ -369,11 +412,29 @@
       // roll: turn the sword about its own length (e.g. 90° = crossguard turned for a thumb grip)
       if (p.roll) edge.applyAxisAngle(s.d, p.roll * DEG).normalize();
       const flat = edge.clone().cross(s.d).normalize();
-      frame(P.blade, s.H, edge, s.d, flat, 1, B.blade, 0.28);
-      seg(P.grip, s.H.clone().addScaledVector(s.d, -B.grip + 0.03), s.H, 0.017);
-      seg(P.cross, s.H.clone().addScaledVector(edge, -B.cross), s.H.clone().addScaledVector(edge, B.cross), 0.011);
-      ball(P.pommel, s.H.clone().addScaledVector(s.d, -B.grip), 0.032, 0.032, 0.02,
+      const sw = s.sw;
+      frame(P.blade, s.H, edge, s.d, flat, sw.rapier ? 0.5 : p.buckler ? 0.85 : 1, sw.blade, 0.28);
+      seg(P.grip, s.H.clone().addScaledVector(s.d, -sw.grip + 0.03), s.H, 0.017);
+      seg(P.cross, s.H.clone().addScaledVector(edge, -sw.cross), s.H.clone().addScaledVector(edge, sw.cross), 0.011);
+      ball(P.pommel, s.H.clone().addScaledVector(s.d, -sw.grip), sw.pommel, sw.pommel, sw.pommel * 0.65,
         new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(edge, s.d, flat)));
+      // rapier rings: one ring flat beside the blade just above the cross, and a bow from the cross to the pommel
+      P.ring.visible = P.bow.visible = !!sw.rapier;
+      if (sw.rapier) {
+        const rq = new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(s.d, flat, edge));
+        P.ring.position.copy(s.H).addScaledVector(s.d, 0.03).addScaledVector(flat, 0.034); P.ring.quaternion.copy(rq); P.ring.scale.set(0.032, 0.032, 0.5);
+        const bq = new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(s.d, edge, flat.clone().negate()));
+        P.bow.position.copy(s.H).addScaledVector(s.d, -sw.grip / 2).addScaledVector(edge, 0.045); P.bow.quaternion.copy(bq); P.bow.scale.set(sw.grip / 2 + 0.01, 0.045, 0.5);
+      }
+      // buckler: its face points along bFace, the fist sits behind the boss
+      const hasB = !!s.bFace;
+      P.buckler.visible = P.boss.visible = P.rim.visible = hasB;
+      if (hasB) {
+        const c = s.handL.clone().addScaledVector(s.bFace, 0.045);
+        seg(P.buckler, c.clone().addScaledVector(s.bFace, -0.009), c.clone().addScaledVector(s.bFace, 0.009), BUCKLER_R);
+        ball(P.boss, c.clone().addScaledVector(s.bFace, 0.008), 0.05, 0.045, 0.05, new T.Quaternion().setFromUnitVectors(UP, s.bFace));
+        P.rim.position.copy(c); P.rim.quaternion.setFromUnitVectors(V(0, 0, 1), s.bFace); P.rim.scale.set(BUCKLER_R, BUCKLER_R, 0.25);
+      }
       fig.render();
     };
 
@@ -391,6 +452,9 @@
           turn: l(from.turn, to.turn), twist: l(from.twist, to.twist), lean: l(from.lean, to.lean),
           hilt: from.hilt.map((v, i) => l(v, to.hilt[i])),
           blade: [from.blade[0] + dYaw * e, l(from.blade[1], to.blade[1])], roll: l(from.roll || 0, to.roll || 0),
+          buckler: to.buckler && (from.buckler ? from.buckler.map((v, i) => l(v, to.buckler[i])) : to.buckler),
+          bucklerFace: to.bucklerFace && (from.bucklerFace ? from.bucklerFace.map((v, i) => l(v, to.bucklerFace[i])) : to.bucklerFace),
+          rapier: to.rapier, leftHand: to.leftHand && (from.leftHand ? from.leftHand.map((v, i) => l(v, to.leftHand[i])) : to.leftHand),
         }, { frame: false });
         if (t < 1) fig._raf = requestAnimationFrame(step); else done && done();
       };
@@ -411,8 +475,11 @@
       headTurn: -(p.headTurn || 0), headNod: p.headNod || 0, headLean: -(p.headLean || 0),
       kneeR: -(p.kneeL || 0), kneeL: -(p.kneeR || 0),
       footLFwd: p.footRFwd || 0, footRFwd: p.footLFwd || 0, footLSide: p.footRSide || 0, footRSide: p.footLSide || 0,
-      footLTurn: p.footRTurn || 0, footRTurn: p.footLTurn || 0 });
+      footLTurn: p.footRTurn || 0, footRTurn: p.footLTurn || 0,
+      buckler: p.buckler && [p.buckler[0], p.buckler[1], -p.buckler[2]],
+      bucklerFace: p.bucklerFace && [-p.bucklerFace[0], p.bucklerFace[1]],
+      leftHand: p.leftHand && [p.leftHand[0], p.leftHand[1], -p.leftHand[2]] });
   }
 
-  window.Fencer3D = { makeFigure, mirrorPose, REST, solve, B };
+  window.Fencer3D = { makeFigure, mirrorPose, REST, solve, B, swordOf };
 })();

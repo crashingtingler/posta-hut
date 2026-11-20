@@ -767,6 +767,11 @@
     st.addEventListener("pointermove", (e) => { if (dragX == null || !zoomFig) return; zoomYaw += (e.clientX - dragX) * 0.6; dragX = e.clientX; zoomFig.setView(zoomYaw); zoomFig.render(); });
     const up = () => { dragX = null; }; st.addEventListener("pointerup", up); st.addEventListener("pointercancel", up); }
   $$("#salle-sides button").forEach((b) => b.addEventListener("click", () => { salleSide = b.dataset.v; Sfx.quill(); renderSalle(); }));
+  // ‹ › beside the cards: previous / next guard in the Salle list (wraps around)
+  const salleStep = (d) => { const ids = $$("#salle-list button").map((b) => b.dataset.id); if (!ids.length) return;
+    salleId = ids[(ids.indexOf(salleId) + d + ids.length) % ids.length]; Sfx.card(); renderSalle(); };
+  $("#salle-prev").addEventListener("click", () => salleStep(-1));
+  $("#salle-next").addEventListener("click", () => salleStep(1));
 
   // Drop caps: wrap each menu button's label so its first letter can be set in red blackletter.
   $$(".big").forEach((b) => { if (b.querySelector(".lbl")) return;

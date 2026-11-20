@@ -490,3 +490,9 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .deck-nav button { width: 34px; height: 30px; border: 1.5px solid var(--ink-2); border-radius: 2px; background: transparent; font-size: 20px; line-height: 1; color: var(--ink); }
 .deck-nav .dpos { font-family: var(--sc); font-size: 13px; color: var(--ink-2); min-width: 34px; text-align: center; }
 .coin-wrap { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* The Salle: unlabelled ‹ › beside the cards step to the previous / next guard in the list */
+.vrow { display: flex; align-items: center; gap: 6px; }
+.vrow .vthumbs { flex: 1; min-width: 0; }
+.gnav { flex: none; width: 34px; height: 64px; padding: 0; display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--ink-2); border-radius: 2px; background: transparent; color: var(--ink); }
+.gnav:active { transform: scale(.94); }

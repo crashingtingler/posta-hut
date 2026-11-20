@@ -680,3 +680,43 @@ for (const e of window.BAKED_EDITS_9) {
     if (g.sides && g.sides.left) { (g.leftPoses = g.leftPoses || {})[e.vi || 0] = e.pose; if (!e.vi) g.sides.left.pose = e.pose; }
   } else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
 }
+
+// ---- Player edits, tenth batch: Hangetort variant 2 (baked 2026-11-19 from stance-off-poses (12).json, saved in Chrome) ----
+window.BAKED_EDITS_10 = [
+  {"name":"Hangetort (right) v2","saved":"2026-11-20T05:09:48.607Z","guard":"hangetort","side":"right","vi":1,"pose":{"lead":"right","stance":0.86,"width":0.38,"crouch":0.2,"shift":0.23,"turn":-80,"twist":13,"lean":12,"hilt":[0.61,1.48,-0.11],"blade":[0,-35],"elbowL":111,"elbowR":6,"roll":90}},
+];
+for (const e of window.BAKED_EDITS_10) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g || !e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  if (e.addVariant) g.poses.push(e.pose);
+  else if (e.side === "left") {
+    if (g.sides && g.sides.left) { (g.leftPoses = g.leftPoses || {})[e.vi || 0] = e.pose; if (!e.vi) g.sides.left.pose = e.pose; }
+  } else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
+}
+
+// ---- Player edits, eleventh batch: Alber left side + variant 2 (baked 2026-11-19 from stance-off-poses (13).json, saved in Chrome) ----
+window.BAKED_EDITS_11 = [
+  {"name":"Sides used: Alber","saved":"2026-11-20T05:12:04.616Z","kind":"sides","guard":"alber","right":true,"left":true},
+  {"name":"Alber (left)","saved":"2026-11-20T05:13:29.517Z","guard":"alber","side":"left","vi":0,"pose":{"lead":"right","stance":0.86,"width":0.3,"crouch":0.16,"shift":0.1,"turn":-10,"twist":14,"lean":35,"hilt":[0.737,0.827,0.194],"blade":[21,-35]}},
+  {"name":"Alber (right) v2","saved":"2026-11-20T05:14:30.656Z","guard":"alber","side":"right","addVariant":true,"pose":{"lead":"left","stance":0.86,"width":0.3,"crouch":0.16,"shift":0.1,"turn":58,"twist":12,"lean":12,"hilt":[0.204,0.733,0.172],"blade":[-9,-35],"roll":-8,"elbowR":-76,"elbowL":14}},
+  {"name":"Alber (left) v2","saved":"2026-11-20T05:21:49.770Z","guard":"alber","side":"left","vi":1,"pose":{"lead":"right","stance":0.86,"width":0.3,"crouch":0.16,"shift":0.1,"turn":-63,"twist":-5,"lean":11,"hilt":[0.298,0.714,-0.173],"blade":[6,-38],"sideLean":-1,"headTurn":21}},
+];
+for (const e of window.BAKED_EDITS_11) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g) continue;
+  if (e.kind === "use") { g.unused = !e.used; continue; }
+  if (e.kind === "sides") {
+    g.sideUse = { right: !!e.right, left: !!e.left };
+    if (e.left && !(g.sides && g.sides.left)) g.sides = Object.assign(g.sides || {}, { left: {} });
+    continue;
+  }
+  if (!e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  if (e.addVariant) g.poses.push(e.pose);
+  else if (e.side === "left") {
+    if (g.sides && g.sides.left) { (g.leftPoses = g.leftPoses || {})[e.vi || 0] = e.pose; if (!e.vi) g.sides.left.pose = e.pose; }
+  } else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
+}

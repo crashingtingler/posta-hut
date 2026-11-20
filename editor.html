@@ -69,6 +69,8 @@
 <aside id="panel">
   <a class="back-game" href="index.html">← Back to Posta hut</a>
   <h1>Guard Editor</h1>
+  <!-- same as "Save pose" in the Save section below (uses its name and "Save as" choice) -->
+  <div class="row" style="margin:0 0 10px"><button id="save-top" class="primary" style="flex:1">Save this pose</button></div>
 
   <section>
     <h2>Open a guard</h2>
@@ -86,7 +88,7 @@
   <section>
     <h2>Head</h2>
     <div id="s-head"></div>
-    <div class="row"><button id="head0">Reset head</button></div>
+    <div class="row"><button id="head0">Reset head</button><button id="headcam" title="Turn and nod the head so the fencer looks straight at the camera">Look at me</button></div>
   </section>
 
   <section>
@@ -106,7 +108,7 @@
     <p class="hint">Sword and buckler (I.33): where the left fist holds the buckler, and which way its face points.</p>
     <div id="s-buckler"></div></div>
     <div id="lefthand-box" style="display:none"><h2 style="margin-top:10px">Left hand</h2>
-    <p class="hint">Rapier (Fabris): where the free left hand is held.</p>
+    <p class="hint">Rapier (Fabris), sabre and dagger (Hutton), smallsword (La Touche): where the free left hand is held.</p>
     <div id="s-lefthand"></div></div>
     <h2 style="margin-top:10px">Elbows</h2>
     <p class="hint">Swing each elbow around the line from shoulder to hand (0° = automatic). The hand stays on the grip.</p>
@@ -309,7 +311,7 @@
     };
     pose.hilt = pt(base.hilt); pose.blade = ang(base.blade);
     if (base.buckler) { pose.buckler = pt(base.buckler); pose.bucklerFace = ang(base.bucklerFace || [0, 0]); }
-    if (base.rapier) pose.leftHand = pt(base.leftHand || Fencer3D.solve(base).handL.toArray());
+    if (base.rapier || base.sabre || base.dagger || base.small) pose.leftHand = pt(base.leftHand || Fencer3D.solve(base).handL.toArray());
     for (const k of ["poleR", "poleL"]) if (base[k]) pose[k] = dir(base[k]);
   }
   function syncSliders() {
@@ -355,7 +357,7 @@
     hiltMark.position.copy(s.H);
     tipMark.position.copy(s.H.clone().addScaledVector(s.d, s.sw.blade));
     $("#buckler-box").style.display = pose.buckler ? "" : "none";
-    $("#lefthand-box").style.display = pose.rapier ? "" : "none";
+    $("#lefthand-box").style.display = pose.rapier || pose.sabre || pose.dagger || pose.small ? "" : "none";
     fig.render();
     syncSliders(); syncPoles();
     // readout
@@ -483,6 +485,26 @@
   $("#thumb").onclick = () => { pose.roll = ((pose.roll || 0) === 90 ? -90 : 90); refresh(false); commit(); toast("Crossguard turned 90° (" + pose.roll + "°)"); };
   $("#roll0").onclick = () => { delete pose.roll; refresh(false); commit(); };
   $("#head0").onclick = () => { delete pose.headTurn; delete pose.headNod; delete pose.headLean; refresh(false); commit(); };
+  // "Look at me": find the head turn and nod that point the face straight at the camera (head lean is kept).
+  // The head's centre doesn't move with turn/nod, so search turn × nod for the smallest angle between the
+  // face direction and the line from the head to the camera: a coarse grid over the slider ranges, then refine.
+  function lookAtCamera() {
+    const cam = fig.camera.position.clone();
+    const err = (t, n) => { const s = Fencer3D.solve(Object.assign({}, pose, { headTurn: t, headNod: n }));
+      return s.look.angleTo(cam.clone().sub(s.head)); };
+    let best = [0, 0], be = Infinity;
+    for (let t = -150; t <= 150; t += 6) for (let n = -90; n <= 90; n += 6) { const e = err(t, n); if (e < be) { be = e; best = [t, n]; } }
+    for (const step of [2, 1]) {
+      const [t0, n0] = best;
+      for (let t = t0 - 3 * step; t <= t0 + 3 * step; t += step) for (let n = n0 - 3 * step; n <= n0 + 3 * step; n += step) {
+        if (t < -150 || t > 150 || n < -90 || n > 90) continue; const e = err(t, n); if (e < be) { be = e; best = [t, n]; } }
+    }
+    pose.headTurn = best[0]; pose.headNod = best[1];
+    if (!pose.headTurn) delete pose.headTurn; if (!pose.headNod) delete pose.headNod;
+    refresh(false); commit();
+    return be * 180 / Math.PI; // leftover angle (deg), 0 when the camera is within the head's reach
+  }
+  $("#headcam").onclick = lookAtCamera;
   $("#feet0").onclick = () => { for (const k of ["footLFwd", "footLSide", "footLTurn", "footRFwd", "footRSide", "footRTurn"]) delete pose[k]; refresh(false); commit(); };
   $("#knees0").onclick = () => { delete pose.kneeL; delete pose.kneeR; refresh(false); commit(); };
   $("#elbows0").onclick = () => { delete pose.elbowR; delete pose.elbowL; delete pose.poleR; delete pose.poleL; refresh(false); commit(); };
@@ -630,6 +652,7 @@
       it.append(label, load, del); box.appendChild(it);
     }
   }
+  $("#save-top").onclick = () => $("#save").click(); // the button at the top of the panel saves the same way
   $("#save").onclick = () => {
     const name = $("#name").value.trim();
     if (!name) { toast("Give the pose a name first"); $("#name").focus(); return; }

@@ -720,3 +720,398 @@ for (const e of window.BAKED_EDITS_11) {
     if (g.sides && g.sides.left) { (g.leftPoses = g.leftPoses || {})[e.vi || 0] = e.pose; if (!e.vi) g.sides.left.pose = e.pose; }
   } else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
 }
+
+// ---- Alfred Hutton, Cold Steel: A Practical Treatise on the Sabre (London, 1889): the five engaging guards ----
+// "The Guards" (pp. 12–14): "The old masters taught four engaging guards ... Inside, Outside, Medium, and the Hanging
+// Guard"; the Medium is the guard Hutton bases all his lessons on. Plate III draws the Medium Guard (a Victorian
+// fencer); Plates IV–VII are Hutton's reproductions of James Miller's 1737 engravings of the Inside, Outside, Hanging and
+// St. George's Guards. Each Miller plate shows both fencers in the guard; the plate used is the right-hand fencer.
+// Scan: Digital Library of India copy on the Internet Archive (in.ernet.dli.2015.278655), public domain (1889).
+// Right side only (Hutton's fencers all lead with the right foot). Poses are first drafts for the stance editor.
+window.TRADITIONS.sabre = { label: "Victorian military", color: "#2e5e6b" }; // Hutton: sabre, great stick and dagger
+window.LOOKS.sabre = {
+  style: "hutton",
+  source: "in a striped Victorian fencing jersey, after Hutton's plates",
+  // jersey stripes [ground, stripe] and trousers
+  stripes: [["#1f2a44", "#e8dcc4"], ["#1d1712", "#e8dcc4"], ["#5a2a2a", "#e8dcc4"], ["#2f4a3a", "#e8dcc4"], ["#1f2a44", "#b03a2e"]],
+  trousers: ["#2b2522", "#1f2a44", "#3a3a3a", "#1d1712"],
+  jackets: ["#f1e9da", "#e8dcc4", "#efe6d2", "#2b2522", "#2f3a4a"],
+  breeches: ["#2b2522", "#5a4a3a", "#3a3a3a", "#6b5a3a", "#c9b48a"],
+  hose: ["#e3d6b0", "#f1e9da", "#2b2522", "#5b6b84"],
+  hair: ["#3b2a1d", "#5a3a22", "#2a211b", "#d8d0c0"],
+  ruff: 0, beard: [0.7, 0.2, 0.1],
+};
+window.MASTERS.push({ id: "hutton", name: "Hutton", tradition: "sabre" });
+(function () {
+  const SRC = "Alfred Hutton, Cold Steel: A Practical Treatise on the Sabre (London, 1889), “The Guards”";
+  const CREDIT = "Alfred Hutton, Cold Steel (1889) · scan: Digital Library of India via Internet Archive · Public domain";
+  const MILLER = "Alfred Hutton, Cold Steel (1889), after James Miller (1737) · scan: Digital Library of India via Internet Archive · Public domain";
+  const hut = (id, name, modern, variants, plate, credit, tip, pose) => ({
+    id, name, modern: modern || "", variants, tradition: "sabre", master: "hutton", source: SRC, plate,
+    manuscript: { src: "assets/plates/" + id + ".jpg", credit },
+    tip, pose, poses: [pose], sideUse: { right: true, left: false },
+  });
+  const R = { sabre: true, lead: "right", view: 155 };
+  window.GUARDS.push(
+    hut("hutton_medium", "Medium Guard", undefined, ["medium", "the medium", "guardia mista"],
+      "Plate III, “Medium Guard”", CREDIT,
+      "Medium Guard: between quarte and tierce — edge inclined downwards, point opposite the opponent’s face. Hutton’s own guard.",
+      Object.assign({}, R, { stance: 0.62, width: 0.2, crouch: 0.14, shift: -0.04, turn: -40, twist: -5, lean: 4,
+        hilt: [0.55, 1.05, 0.12], blade: [-4, 12], roll: -45 })),
+    hut("hutton_inside", "Inside Guard", "Quarte", ["inside", "guard in quarte"],
+      "Plate IV, “The Inside Guard — after James Miller, 1737”, right figure", MILLER,
+      "Inside Guard: in the form of quarte — hand turned nails up and carried to the inside (left), point raised at the opponent.",
+      Object.assign({}, R, { stance: 0.55, width: 0.2, crouch: 0.1, shift: -0.02, turn: -35, twist: -5, lean: 0,
+        hilt: [0.62, 1.30, 0.02], blade: [-8, 30], roll: 90, leftHand: [-0.05, 1.62, -0.22] })),
+    hut("hutton_outside", "Outside Guard", "Tierce", ["outside", "guard in tierce"],
+      "Plate V, “The Outside Guard — after James Miller, 1737”, right figure", MILLER,
+      "Outside Guard: in the form of tierce — hand turned nails down and carried to the outside (right), point raised at the opponent.",
+      Object.assign({}, R, { stance: 0.55, width: 0.2, crouch: 0.1, shift: -0.02, turn: -35, twist: -5, lean: 0,
+        hilt: [0.62, 1.30, 0.26], blade: [6, 30], roll: -90, leftHand: [-0.25, 1.35, -0.45] })),
+    hut("hutton_hanging", "Hanging Guard", "Prime", ["hanging", "hanging guard"],
+      "Plate VI, “The Hanging Guard — after James Miller, 1737”, right figure", MILLER,
+      "Hanging Guard: hand raised as high as the head, edge up, point dropped to the opponent’s right hip; look under the shell.",
+      Object.assign({}, R, { stance: 0.6, width: 0.22, crouch: 0.14, shift: 0.02, turn: -35, twist: -5, lean: 14,
+        hilt: [0.55, 1.62, 0.12], blade: [-15, -35] })),
+    hut("hutton_st_george", "St. George’s Guard", undefined, ["st george", "st. george", "st george's guard", "st georges guard", "saint george"],
+      "Plate VII, “The St. George’s Guard — after James Miller, 1737”, right figure", MILLER,
+      "St. George’s Guard: the hand raised above the head, the blade held across over it to cover the head.",
+      Object.assign({}, R, { stance: 0.55, width: 0.2, crouch: 0.1, shift: -0.02, turn: -35, twist: -5, lean: 2,
+        hilt: [0.36, 1.80, 0.12], blade: [-125, 10] })),
+  );
+  // Master-tier look-alikes: quarte and tierce forms mirror each other; the Medium sits between them;
+  // the Hanging Guard and St. George’s both raise the hand above the head
+  window.TWINS.push(["hutton_inside", "hutton_outside"], ["hutton_medium", "hutton_outside"], ["hutton_hanging", "hutton_st_george"]);
+})();
+
+// ---- Hutton, Cold Steel (1889): the other plates captioned as guards ----
+// "The Great Stick" (pp. 143–150): a five-foot rattan cane in both hands, after the Italian army's method;
+// Plate XXX "The Great Stick — Guard (Quarte)", Plate XXXI "The Great Stick — False Guard (Tierce)".
+// "The Short Sword-Bayonet, or Dagger" (pp. 191–196): Plate XLI "The Dagger — Guard".
+// Each plate is a single Victorian fencer (scan pages 162, 166 and 206 of the same Internet Archive copy).
+(function () {
+  const CREDIT = "Alfred Hutton, Cold Steel (1889) · scan: Digital Library of India via Internet Archive · Public domain";
+  const hut = (id, name, variants, source, plate, tip, pose) => ({
+    id, name, modern: "", variants, tradition: "sabre", master: "hutton", source, plate,
+    manuscript: { src: "assets/plates/" + id + ".jpg", credit: CREDIT },
+    tip, pose, poses: [pose], sideUse: { right: true, left: false },
+  });
+  const STICK = "Alfred Hutton, Cold Steel (London, 1889), “The Great Stick”";
+  window.GUARDS.push(
+    hut("hutton_stick_quarte", "Great Stick Guard", ["great stick", "stick guard", "guard in quarte", "great stick quarte"], STICK,
+      "Plate XXX, “The Great Stick — Guard (Quarte)”",
+      "Great Stick Guard: a quarte — both hands on the cane, the left just below the right, forearm close to the body, right foot forward, point at the level of the eyes.",
+      { stick: true, lead: "right", view: 155, stance: 0.6, width: 0.26, crouch: 0.15, shift: -0.02, turn: -50, twist: -5, lean: 4,
+        hilt: [0.36, 1.0, 0.02], blade: [-6, 12], roll: 90 }),
+    hut("hutton_stick_false", "Great Stick False Guard", ["false guard", "fals-guardia", "falsa guardia", "guard in tierce", "great stick tierce"], STICK,
+      "Plate XXXI, “The Great Stick — False Guard (Tierce)”",
+      "Great Stick False Guard: a tierce — right foot drawn back behind the left, the cane passed over to the right side, left hand under the right forearm, point at eye level.",
+      { stick: true, lead: "left", view: 25, stance: 0.55, width: 0.3, crouch: 0.15, shift: 0, turn: 40, twist: 5, lean: 4,
+        hilt: [0.3, 1.0, 0.22], blade: [8, 20], roll: -90 }),
+    hut("hutton_dagger", "Dagger Guard", ["dagger", "sword-bayonet guard", "bayonet guard"],
+      "Alfred Hutton, Cold Steel (London, 1889), “The Short Sword-Bayonet, or Dagger”",
+      "Plate XLI, “The Dagger — Guard”",
+      "Dagger Guard: the dagger held overhand in the medium guard, right foot forward, the open left hand close to the left breast, ready to seize the wrist.",
+      { dagger: true, lead: "right", view: 155, stance: 0.58, width: 0.22, crouch: 0.15, shift: -0.02, turn: -40, twist: -5, lean: 4,
+        hilt: [0.5, 1.1, 0.12], blade: [-5, 8], roll: -45 }),
+  );
+  window.TWINS.push(["hutton_stick_quarte", "hutton_stick_false"]);
+})();
+
+// ---- Player edits, twelfth batch: Hutton sabre guards + stick/dagger switched off (baked 2026-11-20 from Firefox stance-off-poses(2).json) ----
+window.BAKED_EDITS_12 = [
+  {"name":"Inside Guard (right)","saved":"2026-11-20T08:44:44.229Z","guard":"hutton_inside","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","view":155,"stance":0.55,"width":0.2,"crouch":0.1,"shift":-0.02,"turn":-35,"twist":-5,"lean":0,"hilt":[0.62,1.3,0.02],"blade":[-8,30],"roll":90,"leftHand":[-0.14,1,-0.22],"elbowL":35}},
+  {"name":"Outside Guard (right)","saved":"2026-11-20T08:45:57.088Z","guard":"hutton_outside","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","view":155,"stance":0.55,"width":0.2,"crouch":0.1,"shift":-0.02,"turn":-35,"twist":-5,"lean":0,"hilt":[0.62,1.3,0.26],"blade":[6,30],"roll":-90,"leftHand":[-0.15,1.04,-0.15],"elbowL":-6,"headTurn":23}},
+  {"name":"Hanging Guard (right)","saved":"2026-11-20T08:47:24.687Z","guard":"hutton_hanging","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","view":155,"stance":0.6,"width":0.22,"crouch":0.14,"shift":0.02,"turn":-35,"twist":-5,"lean":14,"hilt":[0.64,1.62,0.12],"blade":[-15,-35],"roll":-167,"elbowR":-100,"leftHand":[-0.117,1.007,-0.16],"headTurn":22}},
+  {"name":"St. George’s Guard (right)","saved":"2026-11-20T08:48:50.288Z","guard":"hutton_st_george","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","view":155,"stance":0.55,"width":0.2,"crouch":0.1,"shift":-0.02,"turn":-35,"twist":-5,"lean":2,"hilt":[0.36,1.73,0.26],"blade":[-98,10],"roll":20,"elbowR":-48,"headTurn":25}},
+  {"name":"Used in the game: Great Stick Guard","saved":"2026-11-20T08:51:32.176Z","kind":"use","guard":"hutton_stick_quarte","used":false},
+  {"name":"Used in the game: Great Stick False Guard","saved":"2026-11-20T08:51:42.100Z","kind":"use","guard":"hutton_stick_false","used":false},
+  {"name":"Used in the game: Dagger Guard","saved":"2026-11-20T08:51:47.156Z","kind":"use","guard":"hutton_dagger","used":false},
+];
+for (const e of window.BAKED_EDITS_12) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g) continue;
+  if (e.kind === "use") { g.unused = !e.used; continue; }
+  if (e.kind === "sides") {
+    g.sideUse = { right: !!e.right, left: !!e.left };
+    if (e.left && !(g.sides && g.sides.left)) g.sides = Object.assign(g.sides || {}, { left: {} });
+    continue;
+  }
+  if (!e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  if (e.addVariant) g.poses.push(e.pose);
+  else if (e.side === "left") {
+    if (g.sides && g.sides.left) { (g.leftPoses = g.leftPoses || {})[e.vi || 0] = e.pose; if (!e.vi) g.sides.left.pose = e.pose; }
+  } else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
+}
+
+// ---- Hutton, Cold Steel (1889): the seventeen parries, Plates IX–XXV ("The Parries", pp. 34–38 and 73) ----
+// Each plate is a single Victorian fencer (Internet Archive scan pages n52–n84, every second page). Engaged in the
+// Medium Guard, each parry stops one of the six cuts (or the head cut, or the vertical cut "at the fork").
+// Descriptions follow Hutton's text; poses are first drafts for the stance editor. Right side only.
+(function () {
+  const SRC = "Alfred Hutton, Cold Steel: A Practical Treatise on the Sabre (London, 1889), “The Parries”";
+  const CREDIT = "Alfred Hutton, Cold Steel (1889) · scan: Digital Library of India via Internet Archive · Public domain";
+  const P = { sabre: true, lead: "right", stance: 0.6, width: 0.2, crouch: 0.14, shift: -0.02, turn: -40, twist: -5, lean: 4 };
+  const SIDE = Object.assign({}, P, { view: 155 }), FRONT = Object.assign({}, P, { view: 95 });
+  const par = (key, name, plate, variants, tip, base, pose) => ({
+    id: "hutton_p_" + key, name, modern: "", variants, tradition: "sabre", master: "hutton", source: SRC,
+    plate: "Plate " + plate + ", “" + name + "”",
+    manuscript: { src: "assets/plates/hutton_p_" + key + ".jpg", credit: CREDIT },
+    tip, pose: Object.assign({}, base, pose), poses: [Object.assign({}, base, pose)], sideUse: { right: true, left: false },
+  });
+  window.GUARDS.push(
+    par("quarte", "Parry of Quarte", "IX", ["quarte", "quarte parry"],
+      "Parry of Quarte (against cut 1): hand turned to quarte and carried a little to the left, point raised slightly; the cut is taken on the forte near the shell.",
+      SIDE, { hilt: [0.52, 1.1, -0.02], blade: [-12, 22], roll: 90 }),
+    par("high_prime", "Parry of High Prime", "X", ["high prime"],
+      "Parry of High Prime (against cut 1): hilt raised and brought over to the left front, edge up, point dropped six or eight inches; look over the right wrist.",
+      SIDE, { hilt: [0.6, 1.5, -0.06], blade: [-30, -10], roll: 180, lean: 8 }),
+    par("tierce", "Parry of Tierce", "XI", ["tierce", "tierce parry"],
+      "Parry of Tierce (against cut 2): hand turned to tierce and carried a little to the right, point raised slightly, edge to the right front.",
+      SIDE, { hilt: [0.5, 1.08, 0.24], blade: [8, 22], roll: -90 }),
+    par("sixte", "Parry of Sixte", "XII", ["sixte"],
+      "Parry of Sixte (against cut 2, from the guard in sixte): point raised slightly, the cut received on the back of the sword.",
+      FRONT, { hilt: [0.42, 1.1, 0.26], blade: [12, 55], roll: 90 }),
+    par("high_octave", "Parry of High Octave", "XIII", ["high octave"],
+      "Parry of High Octave (against cut 2 and the return at the right cheek): hilt raised level with the top of the head, blade dropped forward nearly upright, edge to the right front.",
+      Object.assign({}, P, { view: 230 }), { hilt: [0.38, 1.72, 0.26], blade: [10, -80], roll: -90 }),
+    par("low_prime", "Parry of Low Prime", "XIV", ["low prime", "prime low"],
+      "Parry of Low Prime (against cut 3): from the tierce guard, point dropped forward with the blade nearly upright, hand a little to the left, edge to the left front.",
+      FRONT, { hilt: [0.4, 1.12, 0.0], blade: [-10, -78], roll: 180 }),
+    par("septime", "Parry of Septime", "XV", ["septime"],
+      "Parry of Septime (against cut 3 at the inside of the leg): edge turned to the left, hand carried a little to that side, point dropped.",
+      FRONT, { hilt: [0.4, 1.0, 0.02], blade: [-12, -65], roll: 180 }),
+    par("seconde", "Parry of Seconde", "XVI", ["seconde"],
+      "Parry of Seconde (against cut 4): point dropped to the right front, the cut received on the forte.",
+      FRONT, { hilt: [0.42, 1.02, 0.22], blade: [15, -65], roll: -90 }),
+    par("octave", "Parry of Octave", "XVII", ["octave"],
+      "Parry of Octave (against cut 4, from the guard in sixte): point dropped in octave, the cut received on the back of the sword.",
+      FRONT, { hilt: [0.42, 1.0, 0.24], blade: [15, -65], roll: 90 }),
+    par("low_quarte", "Parry of Low Quarte", "XVIII", ["low quarte"],
+      "Parry of Low Quarte (against cut 5): hand dropped about as low as the thigh in the form of quarte.",
+      SIDE, { hilt: [0.5, 0.85, 0.0], blade: [-12, 18], roll: 90 }),
+    par("prime", "Parry of Prime", "XIX", ["prime", "inside half hanger"],
+      "Parry of Prime (against cut 5): hilt raised to the left front about as high as the shoulder, point dropped straight down — the backswordmen’s “inside half hanger”.",
+      FRONT, { hilt: [0.4, 1.42, -0.06], blade: [-8, -82], roll: 180 }),
+    par("low_tierce", "Parry of Low Tierce", "XX", ["low tierce"],
+      "Parry of Low Tierce (against cut 6): hand turned to tierce and dropped to the level of the thigh.",
+      SIDE, { hilt: [0.5, 0.85, 0.24], blade: [8, 18], roll: -90 }),
+    par("high_seconde", "Parry of High Seconde", "XXI", ["high seconde", "outside half hanger"],
+      "Parry of High Seconde (against cut 6): hand raised as high as the shoulder, point lowered so the blade is nearly upright, edge to the right front — the old “outside half hanger”.",
+      FRONT, { hilt: [0.45, 1.42, 0.28], blade: [12, -80], roll: -90 }),
+    par("st_george_parry", "St. George’s Parry", "XXII", ["head guard", "head parry", "st george parry", "st. george's parry"],
+      "St. George’s Parry, or Head Guard (against the head cut): hand raised to the front a little above the head, elbow behind the hilt, blade to the left front, point a little dropped.",
+      FRONT, { hilt: [0.4, 1.85, 0.12], blade: [-70, -6], roll: 0 }),
+    par("high_tierce", "Parry of High Tierce", "XXIII", ["high tierce"],
+      "Parry of High Tierce: hand turned to tierce and raised to about the height of the right ear; the vertical cut at the right shoulder is taken on the forte.",
+      FRONT, { hilt: [0.35, 1.62, 0.26], blade: [-35, 40], roll: -90 }),
+    par("high_quarte", "Parry of High Quarte", "XXIV", ["high quarte"],
+      "Parry of High Quarte: hand turned to quarte and raised about as high as the left ear, the cut taken on the forte close to the shell.",
+      FRONT, { hilt: [0.32, 1.62, -0.04], blade: [20, 50], roll: 90 }),
+    par("horizontal_quarte", "Parry of Horizontal Quarte", "XXV", ["horizontal quarte"],
+      "Parry of Horizontal Quarte (against the vertical upward cut): hilt dropped in front of the right thigh, edge down, blade held level across the body — an Italian parry.",
+      FRONT, { hilt: [0.35, 0.86, 0.24], blade: [-85, 0], roll: 0 }),
+  );
+  // look-alikes for Master: the same parry high or low, and the paired forms
+  const T = (a, b) => window.TWINS.push(["hutton_p_" + a, "hutton_p_" + b]);
+  T("quarte", "high_quarte"); T("quarte", "low_quarte"); T("quarte", "horizontal_quarte");
+  T("tierce", "high_tierce"); T("tierce", "low_tierce"); T("sixte", "tierce");
+  T("prime", "low_prime"); T("prime", "high_prime"); T("seconde", "high_seconde"); T("seconde", "octave");
+  T("octave", "high_octave"); T("septime", "low_prime");
+  // Hutton’s St. George’s Parry ("Head Guard, or St. George") is the St. George’s Guard: either answer is right
+  window.EQUIVALENT.push(["hutton_st_george", "hutton_p_st_george_parry"]);
+})();
+
+// ---- Philibert de La Touche, Les Vrais Principes de l'Espée Seule (Paris, 1670): the guards ----
+// Part 1, Ch. III (translation Wandrille Duchemin, Wiktenauer). The four guards are one sequence of wrist turns from the
+// draw: 1st — sword on its edge, thumb outward; 2nd — on the flat, thumb underneath; 3rd — on the edge, thumb inward (the
+// best and least tiring, the body upright); 4th — on the flat, thumb above. The body leans forward in the 1st, a little
+// forward in the 2nd, upright in the 3rd and a little back in the 4th. He equates them with prime, seconde, tierce and
+// quarte (not used as the modern names: Hutton's guards already carry Prime, Tierce and Quarte). Plates 2–5 are single
+// figures ("1. Garde" … "4. Garde"; drawn and engraved by P. Brissart); Plates 6 and 8–10 show two fencers both in the
+// position: the plate used is the right-hand fencer. Scans: Gallica / BnF via Wiktenauer, CC BY-NC-SA 4.0.
+window.TRADITIONS.smallsword = { label: "French smallsword", color: "#8a5a1e" };
+window.LOOKS.smallsword = {
+  style: "fabris",
+  source: "in 1670s plumed hats, long wigs, coats and petticoat breeches, after La Touche's plates",
+  jackets: ["#f1e9da", "#e8dcc4", "#c9b48a", "#5a2a2a", "#2f3a4a", "#6b5a3a"],
+  breeches: ["#f1e9da", "#e8dcc4", "#c9b48a", "#5a2a2a", "#2b2522"],
+  hose: ["#f1e9da", "#e3d6b0", "#c9b48a", "#7a2e2e"],
+  hair: ["#3b2a1d", "#5a3a22", "#2a211b", "#7a5230", "#b89a6a"],
+  ruff: 0, beard: [0.85, 0.1, 0.05],
+  // broad-brimmed felt hats with a plume, long wigs, lace cravats; about half in the knee-length coat (justaucorps)
+  hats: ["#2b2522", "#3a2a20", "#1d1712", "#5a4a3a"], plumes: ["#f6f1e6", "#f6f1e6", "#b03a2e", "#d4a62a", "#5b6b84"], coat: 0.5,
+};
+window.MASTERS.push({ id: "latouche", name: "La Touche", tradition: "smallsword" });
+(function () {
+  const SRC = "Philibert de La Touche, Les Vrais Principes de l'Espée Seule (Paris, 1670)";
+  const CREDIT = "Philibert de La Touche, Les Vrais Principes de l'Espée Seule (1670), engraving by P. Brissart · Source gallica.bnf.fr / BnF, via Wiktenauer · CC BY-NC-SA 4.0";
+  const lt = (key, name, variants, plate, tip, pose) => ({
+    id: "latouche_" + key, name, modern: "", variants, tradition: "smallsword", master: "latouche", source: SRC, plate,
+    manuscript: { src: "assets/plates/latouche_" + key + ".jpg", credit: CREDIT },
+    tip, pose, poses: [pose], sideUse: { right: true, left: false },
+  });
+  const S = { small: true, lead: "right", view: 155, stance: 0.72, width: 0.16, crouch: 0.18, shift: -0.08, turn: -45, twist: -5, lean: 4 };
+  const P = (o) => Object.assign({}, S, o);
+  window.GUARDS.push(
+    lt("first", "First Guard", ["first guard", "1st guard", "premiere garde", "prime guard"],
+      "Plate 2, “1. Garde”",
+      "First Guard: the sword as just drawn — on its edge, thumb outward, hand high, point at the enemy; the body leans forward.",
+      P({ lean: 14, hilt: [0.6, 1.62, 0.12], blade: [-4, 4], roll: -150 })),
+    lt("second", "Second Guard", ["second guard", "2nd guard", "seconde garde", "seconde guard"],
+      "Plate 3, “2. Garde”",
+      "Second Guard: from the first by a turn of the wrist — the sword on the flat, thumb underneath; the body still leans a little forward.",
+      P({ lean: 8, hilt: [0.72, 1.42, 0.1], blade: [-2, 0], roll: -90 })),
+    lt("third", "Third Guard", ["third guard", "3rd guard", "troisieme garde", "tierce guard"],
+      "Plate 4, “3. Garde”",
+      "Third Guard: the sword on its edge, thumb inward, at a middle height, point raised at the enemy; the body upright. La Touche’s best guard.",
+      P({ lean: 0, hilt: [0.55, 1.15, 0.1], blade: [-6, 24], roll: 0 })),
+    lt("fourth", "Fourth Guard", ["fourth guard", "4th guard", "quatrieme garde", "quarte guard"],
+      "Plate 5, “4. Garde”",
+      "Fourth Guard: the sword on the flat, thumb above, arm out before you; the body leans a little back.",
+      P({ lean: -5, hilt: [0.66, 1.36, 0.06], blade: [-4, 8], roll: 90 })),
+    lt("quarte_low", "Quarte Guard, Point Low", ["quarte point low", "low quarte guard", "garde de quarte la pointe basse", "crossing of the swords"],
+      "Plate 6, “Garde de quarte, la pointe basse, ou bien croisement d’Espée”, right figure",
+      "Quarte Guard, Point Low: arm out in quarte with the point dropped, the swords crossing — La Touche faults it: too far to parry from, and it leaves the body open.",
+      P({ lean: 2, hilt: [0.68, 1.3, 0.02], blade: [-8, -22], roll: 90 })),
+    lt("seconde_low", "Seconde Guard, Point Low", ["seconde point low", "low seconde guard", "garde de seconde la pointe basse"],
+      "Plate 8, “Garde de Seconde la pointe basse ou bien croisement d’Espée”, right figure",
+      "Seconde Guard, Point Low: arm out in seconde, nails down, with the point dropped below the enemy’s, the swords crossing.",
+      P({ lean: 4, hilt: [0.68, 1.36, 0.14], blade: [-6, -24], roll: -90 })),
+    lt("engage_tierce", "Engagement in Tierce", ["engagement in tierce", "tierce engagement", "engagement de tierce"],
+      "Plate 9, “Engagement d’Espée de Tierce, au dehors de l’Espée ennemie”, right figure",
+      "Engagement in Tierce: your blade joined to the enemy’s on the outside of it, in tierce, arm out at a middle height, point in line.",
+      P({ lean: 2, hilt: [0.66, 1.24, 0.18], blade: [-4, 8], roll: 0 })),
+    lt("engage_quarte", "Engagement in Quarte", ["engagement in quarte", "quarte engagement", "engagement de quarte"],
+      "Plate 10, “Engagement d’Espée de quarte, au dedans de l’Espée ennemie”, right figure",
+      "Engagement in Quarte: your blade joined to the enemy’s on the inside of it, in quarte (nails up), arm out, point in line.",
+      P({ lean: 2, hilt: [0.66, 1.26, 0.0], blade: [-10, 8], roll: 90 })),
+  );
+  window.TWINS.push(["latouche_first", "latouche_second"], ["latouche_third", "latouche_fourth"],
+    ["latouche_quarte_low", "latouche_seconde_low"], ["latouche_engage_tierce", "latouche_engage_quarte"],
+    ["latouche_fourth", "latouche_engage_quarte"], ["latouche_third", "latouche_engage_tierce"]);
+})();
+
+// ---- Player edits, thirteenth batch: Hutton dagger + La Touche (baked 2026-11-20 from Firefox stance-off-poses(3).json) ----
+window.BAKED_EDITS_13 = [
+  {"name":"Dagger Guard (right)","saved":"2026-11-20T09:10:20.686Z","guard":"hutton_dagger","side":"right","vi":0,"pose":{"dagger":true,"lead":"right","view":155,"stance":0.58,"width":0.22,"crouch":0.15,"shift":-0.02,"turn":-40,"twist":-5,"lean":4,"hilt":[0.502,1.1,0.122],"blade":[-5,8],"roll":-45}},
+  {"name":"First Guard (right)","saved":"2026-11-20T09:13:11.037Z","guard":"latouche_first","side":"right","vi":0,"pose":{"small":true,"lead":"right","view":155,"stance":0.72,"width":0.16,"crouch":0.08,"shift":-0.1,"turn":-45,"twist":-5,"lean":14,"hilt":[0.58,1.72,0.12],"blade":[-4,4],"roll":-150,"elbowR":-100,"leftHand":[-0.15,0.827,-0.345]}},
+  {"name":"Fourth Guard (right)","saved":"2026-11-20T09:16:41.973Z","guard":"latouche_fourth","side":"right","vi":0,"pose":{"small":true,"lead":"right","view":155,"stance":0.72,"width":0.16,"crouch":0.18,"shift":-0.24,"turn":-45,"twist":-5,"lean":-4,"hilt":[0.504,1.352,0.055],"blade":[-4.1,2.3],"roll":90,"leftHand":[-0.675,1.471,-0.234],"footLFwd":-0.18,"footLSide":-0.15}},
+  {"name":"Quarte Guard, Point Low (right)","saved":"2026-11-20T09:19:20.465Z","guard":"latouche_quarte_low","side":"right","vi":0,"pose":{"small":true,"lead":"right","view":155,"stance":0.72,"width":0.16,"crouch":0.21,"shift":-0.26,"turn":-45,"twist":-5,"lean":2,"hilt":[0.487,1.12,0.01],"blade":[-7.4,-20.6],"roll":90,"sideLean":-2,"leftHand":[-0.384,1.346,-0.282],"footLSide":-0.12,"footLFwd":-0.12}},
+  {"name":"Seconde Guard, Point Low (right)","saved":"2026-11-20T09:23:48.587Z","guard":"latouche_seconde_low","side":"right","vi":0,"pose":{"small":true,"lead":"right","view":155,"stance":0.72,"width":0.16,"crouch":0.25,"shift":-0.32,"turn":-61,"twist":-5,"lean":4,"hilt":[0.45,1.12,-0.008],"blade":[-1,-17],"roll":-90,"leftHand":[-0.456,1.16,-0.244],"kneeL":-3,"footLTurn":50,"elbowL":11,"elbowR":-74}},
+  {"name":"Used in the game: Engagement in Tierce","saved":"2026-11-20T09:24:07.576Z","kind":"use","guard":"latouche_engage_tierce","used":false},
+  {"name":"Used in the game: Engagement in Quarte","saved":"2026-11-20T09:24:13.508Z","kind":"use","guard":"latouche_engage_quarte","used":false},
+];
+for (const e of window.BAKED_EDITS_13) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g) continue;
+  if (e.kind === "use") { g.unused = !e.used; continue; }
+  if (e.kind === "sides") {
+    g.sideUse = { right: !!e.right, left: !!e.left };
+    if (e.left && !(g.sides && g.sides.left)) g.sides = Object.assign(g.sides || {}, { left: {} });
+    continue;
+  }
+  if (!e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  if (e.addVariant) g.poses.push(e.pose);
+  else if (e.side === "left") {
+    if (g.sides && g.sides.left) { (g.leftPoses = g.leftPoses || {})[e.vi || 0] = e.pose; if (!e.vi) g.sides.left.pose = e.pose; }
+  } else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
+}
+
+// ---- Pose refinement (2026-11-20): the recently imported guards the player had not edited yet, matched to their plates ----
+// Feet, legs, crouch and elbows follow the engravings: Hutton's profile plates and La Touche are side views (view 180) with a
+// long stance, the back leg nearly straight and the front knee over the foot; Hutton's front-on plates (view 95) stand
+// narrower with the knees just bent; High Octave is seen from behind (view 300). Values are merged over each draft pose.
+// Guards with player edits (Inside, Outside, Hanging, St. George's, Dagger; La Touche First, Fourth, both point-low) are not listed.
+window.POSE_REFINE_1 = {
+  "hutton_medium": {"view":180,"stance":0.86,"width":0.1,"crouch":0.11,"shift":0.12,"turn":-50,"twist":-8,"lean":2,"hilt":[0.5,1.05,0.1],"blade":[-4,20]},
+  "hutton_p_quarte": {"view":180,"stance":0.86,"width":0.1,"crouch":0.11,"shift":0.12,"turn":-50,"twist":-8,"lean":2,"hilt":[0.46,1.1,0],"blade":[-10,36]},
+  "hutton_p_high_prime": {"view":180,"stance":0.86,"width":0.1,"crouch":0.11,"shift":0.12,"turn":-50,"twist":-8,"lean":6,"hilt":[0.78,1.52,-0.02],"blade":[-14,-16]},
+  "hutton_p_tierce": {"view":180,"stance":0.86,"width":0.1,"crouch":0.11,"shift":0.12,"turn":-50,"twist":-8,"lean":2,"hilt":[0.48,1.1,0.24],"blade":[6,36]},
+  "hutton_p_low_quarte": {"view":180,"stance":0.86,"width":0.1,"crouch":0.11,"shift":0.12,"turn":-50,"twist":-8,"lean":2,"hilt":[0.46,0.86,0.02],"blade":[-10,34]},
+  "hutton_p_low_tierce": {"view":180,"stance":0.86,"width":0.1,"crouch":0.11,"shift":0.12,"turn":-50,"twist":-8,"lean":2,"hilt":[0.46,0.86,0.22],"blade":[6,34]},
+  "hutton_p_sixte": {"view":95,"stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"kneeR":10},
+  "hutton_p_high_octave": {"view":300,"stance":0.72,"width":0.32,"crouch":0.15,"shift":0,"turn":-40,"twist":-5,"lean":4,"hilt":[0.36,1.68,0.3],"blade":[10,-80]},
+  "hutton_p_low_prime": {"view":95,"stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"kneeR":10,"hilt":[0.36,1.14,0.02]},
+  "hutton_p_septime": {"view":95,"stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"kneeR":10,"hilt":[0.36,0.98,0]},
+  "hutton_p_seconde": {"view":95,"stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"kneeR":10,"hilt":[0.34,0.98,0.24]},
+  "hutton_p_octave": {"view":95,"stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"kneeR":10,"hilt":[0.34,0.96,0.26]},
+  "hutton_p_prime": {"view":95,"stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"kneeR":10,"hilt":[0.36,1.38,-0.22],"blade":[-12,-80]},
+  "hutton_p_high_seconde": {"view":95,"stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"kneeR":10,"hilt":[0.46,1.42,0.5],"blade":[10,-84]},
+  "hutton_p_st_george_parry": {"view":95,"stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"kneeR":10,"hilt":[0.3,1.68,0.4],"blade":[-75,-5]},
+  "hutton_p_high_tierce": {"view":95,"stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"kneeR":10,"hilt":[0.3,1.6,0.3]},
+  "hutton_p_high_quarte": {"view":95,"stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"kneeR":10},
+  "hutton_p_horizontal_quarte": {"view":95,"stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"kneeR":10},
+  "latouche_second": {"view":180,"stance":0.92,"width":0.08,"crouch":0.13,"shift":0.12,"turn":-50,"twist":-5,"lean":6,"hilt":[0.74,1.45,0.08],"blade":[-2,0]},
+  "latouche_third": {"view":180,"stance":0.92,"width":0.08,"crouch":0.13,"shift":0.12,"turn":-50,"twist":-5,"lean":0,"hilt":[0.55,1.2,0.1],"blade":[-6,22]},
+  "latouche_engage_tierce": {"view":180,"stance":0.92,"width":0.08,"crouch":0.13,"shift":0.12,"turn":-50,"twist":-5,"lean":2,"hilt":[0.68,1.3,0.16],"blade":[-4,-4]},
+  "latouche_engage_quarte": {"view":180,"stance":0.92,"width":0.08,"crouch":0.13,"shift":0.12,"turn":-50,"twist":-5,"lean":2,"hilt":[0.68,1.3,0.02],"blade":[-8,-2]},
+  "hutton_stick_quarte": {"view":120,"stance":0.62,"width":0.24,"crouch":0.1,"shift":0.02,"turn":-40,"twist":-5,"lean":4,"hilt":[0.32,0.98,0.04],"blade":[-8,8]},
+  "hutton_stick_false": {"view":60,"stance":0.6,"width":0.26,"crouch":0.1,"shift":0,"turn":40,"twist":5,"lean":4,"hilt":[0.3,0.95,0.24],"blade":[12,8]},
+};
+for (const [id, o] of Object.entries(window.POSE_REFINE_1)) {
+  const g = window.GUARDS.find((x) => x.id === id);
+  if (!g) continue;
+  g.pose = Object.assign({}, g.pose, o); g.poses = g.poses || [g.pose]; g.poses[0] = g.pose;
+}
+
+// ---- Player edits, fourteenth batch: La Touche Second and Third Guards (baked 2026-11-20 from Firefox stance-off-poses(4).json) ----
+// Applied after POSE_REFINE_1, so the player's versions win.
+window.BAKED_EDITS_14 = [
+  {"name":"Second Guard (right)","saved":"2026-11-20T09:42:19.094Z","guard":"latouche_second","side":"right","vi":0,"pose":{"small":true,"lead":"right","view":180,"stance":0.92,"width":0.08,"crouch":0.13,"shift":-0.08,"turn":-50,"twist":-5,"lean":6,"hilt":[0.7,1.45,0.08],"blade":[-2,0],"roll":-90,"leftHand":[-0.196,0.765,-0.288],"elbowR":-74,"footLSide":-0.15,"kneeL":-27,"footLTurn":42,"footLFwd":0.26}},
+  {"name":"Third Guard (right)","saved":"2026-11-20T09:44:52.571Z","guard":"latouche_third","side":"right","vi":0,"pose":{"small":true,"lead":"right","view":180,"stance":0.92,"width":0.08,"crouch":0.13,"shift":-0.09,"turn":-50,"twist":-5,"lean":-5,"hilt":[0.555,1.115,0.105],"blade":[-4.8,15.2],"leftHand":[-0.259,1.519,-0.212],"footLTurn":61,"footLSide":-0.13}},
+];
+for (const e of window.BAKED_EDITS_14) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g || !e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0];
+}
+
+// ---- Player edits, fifteenth batch: Hutton Medium Guard + parries (baked 2026-11-20 from Firefox stance-off-poses(5).json) ----
+// Applied after POSE_REFINE_1, so the player's versions win.
+window.BAKED_EDITS_15 = [
+  {"name":"Medium Guard (right)","saved":"2026-11-20T09:47:47.405Z","guard":"hutton_medium","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","view":180,"stance":0.86,"width":0.1,"crouch":0.08,"shift":0.02,"turn":-50,"twist":-8,"lean":2,"hilt":[0.57,1.08,0.1],"blade":[-4,20],"roll":-45,"leftHand":[-0.165,1.101,-0.081],"elbowR":35}},
+  {"name":"Parry of Quarte (right)","saved":"2026-11-20T09:49:19.729Z","guard":"hutton_p_quarte","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.86,"width":0.1,"crouch":0.11,"shift":0.12,"turn":-50,"twist":-8,"lean":2,"view":180,"hilt":[0.65,1.1,-0.13],"blade":[-10,36],"roll":90,"elbowR":14}},
+  {"name":"Parry of High Prime (right)","saved":"2026-11-20T09:52:05.972Z","guard":"hutton_p_high_prime","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.86,"width":0.1,"crouch":0.05,"shift":0.12,"turn":-50,"twist":-8,"lean":6,"view":180,"hilt":[0.84,1.48,-0.16],"blade":[-14,-30],"roll":180,"elbowR":-89,"footLTurn":39,"footLFwd":0.22,"headTurn":13,"leftHand":[-0.064,1.133,-0.082]}},
+  {"name":"Parry of Tierce (right)","saved":"2026-11-20T09:54:03.022Z","guard":"hutton_p_tierce","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.71,"width":0.1,"crouch":0.08,"shift":0.02,"turn":-50,"twist":-8,"lean":2,"view":180,"hilt":[0.54,1.13,0.24],"blade":[6,36],"roll":-90,"leftHand":[-0.165,1.101,-0.081],"headTurn":25}},
+  {"name":"Parry of Sixte (right)","saved":"2026-11-20T09:56:23.429Z","guard":"hutton_p_sixte","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"view":95,"hilt":[0.42,1.21,0.26],"blade":[36,42],"roll":58,"kneeR":10,"elbowR":4,"headTurn":25,"leftHand":[-0.02,1.031,-0.177],"elbowL":40}},
+  {"name":"Parry of High Octave (right)","saved":"2026-11-20T09:58:26.296Z","guard":"hutton_p_high_octave","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.72,"width":0.32,"crouch":0.15,"shift":-0.12,"turn":-40,"twist":-5,"lean":4,"view":300,"hilt":[0.24,1.67,0.3],"blade":[88,-71],"roll":-85,"elbowR":61,"headTurn":29,"leftHand":[-0.272,0.992,-0.161]}},
+  {"name":"Parry of Low Prime (right)","saved":"2026-11-20T10:00:25.790Z","guard":"hutton_p_low_prime","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"view":95,"hilt":[0.42,0.91,-0.05],"blade":[-11,-78],"roll":180,"kneeR":10}},
+];
+for (const e of window.BAKED_EDITS_15) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g || !e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0];
+}
+
+// ---- Player edits, sixteenth batch: the rest of Hutton's parries (baked 2026-11-20 from Firefox stance-off-poses(6).json) ----
+// Applied after POSE_REFINE_1 and BAKED_EDITS_15 (this Low Prime is newer), so the player's versions win.
+window.BAKED_EDITS_16 = [
+  {"name":"Parry of Low Prime (right)","saved":"2026-11-20T10:03:14.391Z","guard":"hutton_p_low_prime","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"view":95,"hilt":[0.42,0.91,-0.05],"blade":[-11,-78],"roll":155,"kneeR":10,"headTurn":19,"headNod":2}},
+  {"name":"Parry of Septime (right)","saved":"2026-11-20T10:04:51.503Z","guard":"hutton_p_septime","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"view":95,"hilt":[0.36,0.89,-0.13],"blade":[-12,-65],"roll":97,"kneeR":10,"headTurn":21,"headNod":2,"leftHand":[-0.179,1.081,-0.18]}},
+  {"name":"Parry of Seconde (right)","saved":"2026-11-20T10:06:49.781Z","guard":"hutton_p_seconde","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"view":95,"hilt":[0.46,0.98,0.43],"blade":[15,-65],"roll":-126,"kneeR":10,"headTurn":22,"headNod":2,"leftHand":[-0.179,0.97,-0.147],"elbowL":45}},
+  {"name":"Parry of Octave (right)","saved":"2026-11-20T10:08:49.271Z","guard":"hutton_p_octave","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"view":95,"hilt":[0.34,0.833,0.32],"blade":[31,-65],"roll":90,"kneeR":10,"headTurn":26,"headNod":2}},
+  {"name":"Parry of Low Quarte (right)","saved":"2026-11-20T10:10:23.103Z","guard":"hutton_p_low_quarte","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.86,"width":0.1,"crouch":0.1,"shift":-0.01,"turn":-50,"twist":-8,"lean":2,"view":180,"hilt":[0.48,0.87,0.02],"blade":[-10,34],"roll":25,"leftHand":[-0.195,1.081,-0.081],"footLTurn":51,"footLSide":-0.01,"footLFwd":0.13,"elbowR":51}},
+  {"name":"Parry of Prime (right)","saved":"2026-11-20T10:11:22.042Z","guard":"hutton_p_prime","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"view":95,"hilt":[0.36,1.38,-0.31],"blade":[-113,-76],"roll":113,"kneeR":10,"elbowR":-95,"headTurn":12,"headNod":2}},
+  {"name":"Parry of Low Tierce (right)","saved":"2026-11-20T10:13:07.506Z","guard":"hutton_p_low_tierce","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.86,"width":0.1,"crouch":0.08,"shift":0.02,"turn":-50,"twist":-8,"lean":2,"view":180,"hilt":[0.36,0.89,0.22],"blade":[6,34],"roll":-22,"footLTurn":51,"footLFwd":0.11,"leftHand":[-0.165,1.101,-0.081],"elbowR":118,"headTurn":28,"headNod":2}},
+  {"name":"Parry of High Seconde (right)","saved":"2026-11-20T10:15:17.754Z","guard":"hutton_p_high_seconde","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"view":95,"hilt":[0.54,1.24,0.5],"blade":[10,-66],"roll":-152,"kneeR":10,"headTurn":38,"headNod":2,"elbowR":-89}},
+  {"name":"St. George’s Parry (right)","saved":"2026-11-20T10:16:19.687Z","guard":"hutton_p_st_george_parry","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"view":95,"hilt":[0.3,1.76,0.4],"blade":[-75,7],"roll":-118,"kneeR":10,"headTurn":34,"headNod":2}},
+  {"name":"Parry of High Tierce (right)","saved":"2026-11-20T10:20:25.928Z","guard":"hutton_p_high_tierce","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"view":95,"hilt":[0.39,1.6,0.2],"blade":[-79,62],"roll":-22,"kneeR":10,"leftHand":[-0.179,1.021,-0.18],"elbowL":9,"headTurn":19,"elbowR":30}},
+  {"name":"Parry of High Quarte (right)","saved":"2026-11-20T10:21:14.139Z","guard":"hutton_p_high_quarte","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"view":95,"hilt":[0.32,1.68,-0.19],"blade":[20,50],"roll":90,"kneeR":10,"headTurn":23}},
+  {"name":"Parry of Horizontal Quarte (right)","saved":"2026-11-20T10:21:26.393Z","guard":"hutton_p_horizontal_quarte","side":"right","vi":0,"pose":{"sabre":true,"lead":"right","stance":0.42,"width":0.17,"crouch":0.05,"shift":-0.04,"turn":-30,"twist":-5,"lean":2,"view":95,"hilt":[0.35,0.86,0.24],"blade":[-85,0],"roll":-53,"kneeR":10}},
+];
+for (const e of window.BAKED_EDITS_16) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g || !e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0];
+}

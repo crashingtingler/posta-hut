@@ -162,7 +162,7 @@
       for (const m of M) {
         const b = document.createElement("button");
         // medallion: Meyer from his own woodcut, Fiore's crowned master (Getty), Liechtenauer a wax seal (no likeness survives); I.33 the priest from fol. 17r
-        const pic = { liechtenauer: "assets/ui/master_liechtenauer.png", fiore: "assets/ui/master_fiore.jpg", meyer: "assets/ui/master_meyer.jpg", i33: "assets/ui/master_i33.jpg", fabris: "assets/ui/master_fabris.jpg" }[m.id];
+        const pic = { liechtenauer: "assets/ui/master_liechtenauer.png", fiore: "assets/ui/master_fiore.jpg", meyer: "assets/ui/master_meyer.jpg", i33: "assets/ui/master_i33.jpg", fabris: "assets/ui/master_fabris.jpg", hutton: "assets/ui/master_hutton.jpg", latouche: "assets/ui/master_latouche.jpg" }[m.id];
         b.dataset.id = m.id; b.className = "master-medal";
         b.innerHTML = (pic ? `<img src="${pic}" alt="">` : "") + `<span>${m.name}</span>`; // names are fixed data
         b.setAttribute("aria-pressed", "false");
@@ -777,6 +777,10 @@
     st.addEventListener("pointermove", (e) => { if (dragX == null || !zoomFig) return; zoomYaw += (e.clientX - dragX) * 0.6; dragX = e.clientX; zoomFig.setView(zoomYaw); zoomFig.render(); });
     const up = () => { dragX = null; }; st.addEventListener("pointerup", up); st.addEventListener("pointercancel", up); }
   $$("#salle-sides button").forEach((b) => b.addEventListener("click", () => { salleSide = b.dataset.v; Sfx.quill(); renderSalle(); }));
+  // Report an error: from the Salle it carries the open guard; from Settings it is about the game in general
+  $("#report-salle").addEventListener("click", () => { const g = byId[salleId], m = M.find((x) => x.id === g.master);
+    Report.open({ label: g.name + " — " + (m ? m.name : g.master) + (g.plate ? " · " + g.plate : ""), guard: g.id, guardName: g.name, master: g.master, plate: g.plate || "" }); });
+  $("#report-settings").addEventListener("click", () => Report.open({}));
   // ‹ › beside the cards: previous / next guard in the Salle list (wraps around)
   const salleStep = (d) => { const ids = $$("#salle-list button").map((b) => b.dataset.id); if (!ids.length) return;
     salleId = ids[(ids.indexOf(salleId) + d + ids.length) % ids.length]; Sfx.card(); renderSalle(); };

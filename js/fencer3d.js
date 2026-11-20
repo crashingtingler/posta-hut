@@ -12,6 +12,13 @@
 //            one-handed arming sword held in the right hand only; bucklerFace: [yaw, pitch] the way the
 //            buckler's face points (default: toward the opponent).
 //   rapier: true   a one-handed rapier (long thin blade, ringed hilt); leftHand: [x, y, z] where the free left hand is
+//   sabre: true    a one-handed sabre (Hutton 1889: shorter, broader blade, knuckle-bow guard); leftHand as for the rapier,
+//                  default: the left hand rests on the left hip
+//   stick: true    Hutton's "great stick": a five-foot rattan cane held in both hands (right hand above the left)
+//   dagger: true   a short sword-bayonet held overhand in the right hand; leftHand as above, default: the open left
+//                  hand held close to the left breast
+//   small: true    a smallsword (La Touche 1670): long slender blade, round cup hilt and small knuckle bow; leftHand as
+//                  above, default: the open left hand raised to about head height
 (function () {
   const T = window.THREE;
   const V = (x, y, z) => new T.Vector3(x, y, z);
@@ -25,7 +32,15 @@
   const LONG = { blade: B.blade, grip: B.grip, cross: B.cross, handA: B.handA, pommel: 0.032 };
   // rapier (Fabris 1606): long narrow blade, short grip, long quillons and side rings, one hand
   const RAPIER = { blade: 1.08, grip: 0.12, cross: 0.13, handA: 0.05, pommel: 0.028, rapier: true };
-  const swordOf = (p) => (p && p.rapier ? RAPIER : p && p.buckler ? ARMING : LONG);
+  // sabre (Hutton, Cold Steel 1889): about 34-inch blade, short cross (the bow is the guard), one hand
+  // curve: how far the tip sweeps back toward the spine (m) — a gently curved blade, the edge on the convex side
+  const SABRE = { blade: 0.86, grip: 0.13, cross: 0.04, handA: 0.05, pommel: 0.022, sabre: true, curve: 0.06 };
+  // Hutton's great stick (5 ft rattan, both hands) and the short sword-bayonet used as a dagger
+  const STICK = { blade: 1.25, grip: 0.27, cross: 0, handA: 0.05, pommel: 0.016, stick: true };
+  const DAGGER = { blade: 0.3, grip: 0.11, cross: 0.05, handA: 0.05, pommel: 0.02, dagger: true };
+  // smallsword (La Touche, 1670): a long slender blade, a round cup hilt, a small knuckle bow and short quillons
+  const SMALL = { blade: 0.98, grip: 0.11, cross: 0.05, handA: 0.05, pommel: 0.024, small: true };
+  const swordOf = (p) => (p && p.small ? SMALL : p && p.stick ? STICK : p && p.dagger ? DAGGER : p && p.sabre ? SABRE : p && p.rapier ? RAPIER : p && p.buckler ? ARMING : LONG);
   const BUCKLER_R = 0.15;
   const REST = { lead: "left", stance: 0.34, width: 0.22, crouch: 0.02, turn: 25, twist: 0, lean: 2,
                  hilt: [0.28, 0.86, 0.2], blade: [5, -62] };
@@ -60,8 +75,9 @@
     disc: new T.CylinderGeometry(1, 1, 1, 28, 1), // buckler board (unit radius and thickness)
     dome: new T.SphereGeometry(1, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), // buckler boss
     rim: new T.TorusGeometry(1, 0.07, 6, 28), // buckler iron rim
+    bseg: new T.CylinderGeometry(1, 1, 1, 4, 1, true), // one piece of a curved (sabre) blade: same diamond section as the blade
   };
-  GEO.seg.translate(0, 0.5, 0); GEO.blade.translate(0, 0.5, 0); GEO.cone.translate(0, 0.5, 0); GEO.skirt.translate(0, -0.5, 0);
+  GEO.seg.translate(0, 0.5, 0); GEO.blade.translate(0, 0.5, 0); GEO.bseg.translate(0, 0.5, 0); GEO.cone.translate(0, 0.5, 0); GEO.skirt.translate(0, -0.5, 0);
 
   // ---------- helpers ----------
   function ik(a, b, l1, l2, pole) {
@@ -158,8 +174,12 @@
     const handR = H.clone().addScaledVector(d, -sw.handA);
     // sword and buckler: the left fist holds the buckler's grip behind the boss; otherwise both hands on the grip
     // rapier: the free left hand is held up before the body (pose.leftHand places it)
-    const handL = p.buckler ? V(...p.buckler) : p.rapier ? (p.leftHand ? V(...p.leftHand)
-      : neck.clone().addScaledVector(fwd, 0.28).addScaledVector(right, -0.08).addScaledVector(spine, -0.12))
+    // sabre: the left hand rests on the left hip unless pose.leftHand places it
+    const handL = p.buckler ? V(...p.buckler) : p.leftHand && (p.rapier || p.sabre || p.dagger || p.small) ? V(...p.leftHand)
+      : p.small ? neck.clone().addScaledVector(fwd, 0.12).addScaledVector(right, -0.26).addScaledVector(spine, 0.16)
+      : p.dagger ? neck.clone().addScaledVector(fwd, 0.2).addScaledVector(right, -0.14).addScaledVector(spine, -0.16)
+      : p.sabre ? waist.clone().addScaledVector(right, -0.2).addScaledVector(fwd, -0.03).addScaledVector(spine, 0.02)
+      : p.rapier ? neck.clone().addScaledVector(fwd, 0.28).addScaledVector(right, -0.08).addScaledVector(spine, -0.12)
       : H.clone().addScaledVector(d, -B.handB);
     const bFace = p.buckler ? bladeDir(p.bucklerFace || [0, 0]) : null;
     // elbow direction hints; a pose can override them (world vectors) when an arm must cross in front of the body
@@ -209,8 +229,9 @@
       jacket: toon(0xf1e9da), jacketFar: toon(0xd9cfbd), armL: toon(0xf1e9da), armR: toon(0xf1e9da), thighL: toon(0xf1e9da), thighR: toon(0xf1e9da),
       shin: toon(0xf1e9da), shoe: toon(0x1d1712), skin: toon(0xf0d9b8), hair: toon(0x3b2a1d),
       belt: toon(accent || 0x8e3b3b), white: toon(0xf6f1e6), gold: toon(0xd4a62a), ink: toon(0x1d1712),
-      steel: toon(0xd9d6cf), iron: toon(0x5e5a52), grip: toon(0x5a3a22),
+      steel: toon(0xd9d6cf), iron: toon(0x5e5a52), grip: toon(0x5a3a22), cane: toon(0xc9a86a),
       chap: toon(0x7e2620), // the chaperone's cloth
+      hat: toon(0x2b2522), plume: toon(0xf6f1e6), // La Touche: the broad-brimmed hat and its plume
     };
     const P = {};
     const add = (k, geo, mat, ol) => (P[k] = part(scene, geo, mat, ol));
@@ -235,6 +256,10 @@
     for (let i = 0; i < 5; i++) add("spike" + i, GEO.cone, M.gold, OUTLINE_THIN);
     add("garter", GEO.seg, M.gold, OUTLINE_THIN); // Fiore's scholars: a gold garter just below the left knee
     // I.33 (c. 1300): the scholar wears a hood with a shoulder cape and a pointed tail; the priest a tonsure
+    // La Touche (1670s France): broad-brimmed hat with a plume, a long curled wig falling to the shoulders, a lace cravat
+    add("hatBrim", GEO.disc, M.hat, OUTLINE_THIN); add("hatCrown", GEO.ball, M.hat, OUTLINE_THIN); add("plume", GEO.ball, M.plume, OUTLINE_THIN);
+    add("wigL", GEO.ball, M.hair, OUTLINE_THIN); add("wigR", GEO.ball, M.hair, OUTLINE_THIN); add("wigB", GEO.ball, M.hair, OUTLINE_THIN);
+    add("cravat", GEO.ball, M.white, OUTLINE_THIN);
     add("hood", GEO.ball, M.jacket, OUTLINE_THIN); add("hoodCape", GEO.ball, M.jacket, OUTLINE_THIN);
     add("hoodTip", GEO.cone, M.jacket, OUTLINE_THIN); add("tonsure", GEO.ball, M.skin, null);
     // arms
@@ -243,6 +268,8 @@
       add("elbow" + s, GEO.ball, M["arm" + s]); add("fore" + s, GEO.seg, M["arm" + s]); add("hand" + s, GEO.ball, M.skin);
     }
     // sword
+    const BSEGS = 8; // a curved blade is drawn as this many short pieces along the arc
+    for (let i = 0; i < BSEGS; i++) add("bs" + i, GEO.bseg, M.steel, OUTLINE_THIN);
     add("blade", GEO.blade, M.steel, OUTLINE_THIN); add("grip", GEO.seg, M.grip, OUTLINE_THIN);
     add("cross", GEO.seg, M.iron, OUTLINE_THIN); add("pommel", GEO.ball, M.iron, OUTLINE_THIN);
     // buckler (sword and buckler guards only): a small round board with a domed iron boss and an iron rim
@@ -250,6 +277,8 @@
     add("rim", GEO.rim, M.iron, null);
     // rapier hilt: a side ring beside the blade and a knuckle bow in front of the hand
     add("ring", GEO.rim, M.iron, OUTLINE_THIN); add("bow", GEO.rim, M.iron, OUTLINE_THIN);
+    // smallsword hilt: a round cup (a shallow dish around the blade, rounded toward the point)
+    add("cup", GEO.dome, M.iron, OUTLINE_THIN);
 
     let look = { style: "fiore", bulk: 1 }, viewYaw = 22, w = 0, h = 0;
     const armNear = new T.Color(0xf1e9da), armFar = new T.Color(0xd9cfbd);
@@ -300,6 +329,14 @@
       // sleeves: the arm farther from the viewer is drawn darker (like the hatched far limbs in the plates),
       // so crossed arms (Schlüssel, Ochs, Schrankhut) read as two separate arms
       armNear.set(lk.jacket); armFar.set(lk.jacket).lerp(new T.Color(INK), 0.38);
+      // Hutton: a striped jersey — the stripes are a texture on the jacket and sleeves (white base colour so the
+      // texture shows true; the far sleeve is still shaded darker)
+      for (const mk of ["jacket", "armL", "armR"]) {
+        if (M[mk].map) { M[mk].map.dispose(); M[mk].map = null; }
+        if (lk.stripes) { M[mk].map = stripes(lk.stripes[0], lk.stripes[1]); M[mk].map.repeat.set(mk === "jacket" ? 3 : 1.5, 1); }
+        M[mk].needsUpdate = true;
+      }
+      if (lk.stripes) { M.jacket.color.set("#ffffff"); armNear.set("#ffffff"); armFar.set("#ffffff").lerp(new T.Color(INK), 0.38); }
       for (const k of ["thighL", "thighR"]) {
         if (M[k].map) { M[k].map.dispose(); M[k].map = null; }
         M[k].color.set(meyer ? "#ffffff" : lk.thigh);
@@ -317,6 +354,9 @@
       P.garter.visible = !!lk.garter;
       P.hood.visible = P.hoodCape.visible = P.hoodTip.visible = !!lk.hood;
       P.tonsure.visible = !!lk.tonsure;
+      P.hatBrim.visible = P.hatCrown.visible = P.plume.visible = !!lk.hat;
+      if (lk.hat) { M.hat.color.set(lk.hatColor || "#2b2522"); M.plume.color.set(lk.plumeColor || "#f6f1e6"); }
+      P.wigL.visible = P.wigR.visible = P.wigB.visible = !!lk.wig; P.cravat.visible = !!lk.cravat;
       fig.set(fig.pose);
     };
 
@@ -341,7 +381,7 @@
       }
       // torso: hips follow the pelvis turn, chest adds twist and lean
       frame(P.hips, s.pel.clone().addScaledVector(UP, -0.06), s.hipFwd, UP, s.hipRight, 0.12 * bk, B.waist + 0.06, 0.16 * bk);
-      frame(P.skirt, s.waist, s.hipFwd, UP, s.hipRight, 0.135 * bk, meyer || look.style === "fabris" ? 0.12 : look.style === "i33" ? 0.52 : 0.27, 0.165 * bk);
+      frame(P.skirt, s.waist, s.hipFwd, UP, s.hipRight, 0.135 * bk, look.coat ? 0.4 : meyer || look.style === "fabris" || look.style === "hutton" ? 0.12 : look.style === "i33" ? 0.52 : 0.27, 0.165 * bk);
       frame(P.belt, s.waist, s.hipFwd, s.hipRight.clone().negate(), UP, 0.1 * bk, 0.122 * bk, 0.05);
       const chestBase = s.waist.clone().addScaledVector(s.spine, -0.03);
       frame(P.chest, chestBase, s.fwd, s.spine, s.right, 0.13 * bk, B.torso - B.waist + 0.04, 0.2 * bk);
@@ -355,7 +395,9 @@
       const nose = at(B.headR * 0.85, -0.005);
       seg(P.nose, nose, nose.clone().addScaledVector(s.look, 0.035).addScaledVector(hU, -0.02), 0.016);
       for (const [k, sg] of [["eyeL", -1], ["eyeR", 1]]) ball(P[k], at(B.headR * 0.82, 0.02, sg * 0.035), 0.011);
-      ball(P.hair, at(-0.03, 0.025), B.headR * 1.04, B.headR * 1.08, B.headR * 1.06, hq);
+      // under a hat the hair is tucked lower so it never pokes up through the crown or brim
+      if (look.hat) ball(P.hair, at(-0.03, -0.012), B.headR * 1.02, B.headR * 0.98, B.headR * 1.04, hq);
+      else ball(P.hair, at(-0.03, 0.025), B.headR * 1.04, B.headR * 1.08, B.headR * 1.06, hq);
       const full = look.beard === 2;
       // beard follows the jaw and chin: centred below the mouth and mostly inside the head, so only the jawline,
       // chin and (full beard) a little under the chin show — the mouth area stays skin
@@ -394,6 +436,21 @@
         P.hoodTip.scale.set(0.03, tt.distanceTo(tb), 0.03);
       }
       if (look.tonsure) ball(P.tonsure, at(-0.025, 0.092), 0.058, 0.05, 0.058, hq);
+      // La Touche: the brim is cocked up a little on the left, the plume curls back over the crown;
+      // the wig hangs in curls either side of the face and down the back to the shoulders
+      if (look.hat) {
+        const brimUp = hU.clone().addScaledVector(side, -0.22).normalize(), hTop = at(-0.01, B.headR * 0.95);
+        frame(P.hatBrim, hTop, s.look, brimUp, s.look.clone().cross(brimUp).normalize(), 0.2, 0.012, 0.2);
+        ball(P.hatCrown, hTop.clone().addScaledVector(brimUp, 0.03), 0.098, 0.068, 0.1, hq);
+        ball(P.plume, at(-0.05, B.headR * 1.7, -0.05), 0.13, 0.045, 0.06, hq.clone().multiply(new T.Quaternion().setFromAxisAngle(V(0, 0, 1), 0.35)));
+      }
+      if (look.wig) {
+        ball(P.wigL, at(-0.03, -0.06, -0.085), 0.055, 0.13, 0.05, hq);
+        ball(P.wigR, at(-0.03, -0.06, 0.085), 0.055, 0.13, 0.05, hq);
+        ball(P.wigB, at(-0.075, -0.05), 0.07, 0.14, 0.1, hq);
+      }
+      if (look.cravat) ball(P.cravat, s.neck.clone().addScaledVector(s.fwd, 0.1).addScaledVector(s.spine, -0.025), 0.03, 0.05, 0.045,
+        new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(s.fwd, s.spine, s.right)));
       // arms (near/far shading decided from the camera position)
       const farL = camera.position.distanceTo(s.shL) > camera.position.distanceTo(s.shR);
       M.armL.color.copy(farL ? armFar : armNear); M.armR.color.copy(farL ? armNear : armFar);
@@ -413,18 +470,40 @@
       if (p.roll) edge.applyAxisAngle(s.d, p.roll * DEG).normalize();
       const flat = edge.clone().cross(s.d).normalize();
       const sw = s.sw;
-      frame(P.blade, s.H, edge, s.d, flat, sw.rapier ? 0.5 : p.buckler ? 0.85 : 1, sw.blade, 0.28);
+      frame(P.blade, s.H, edge, s.d, flat, sw.rapier ? 0.5 : sw.small ? 0.42 : sw.sabre ? 0.62 : p.buckler ? 0.85 : 1, sw.blade, 0.28);
       seg(P.grip, s.H.clone().addScaledVector(s.d, -sw.grip + 0.03), s.H, 0.017);
       seg(P.cross, s.H.clone().addScaledVector(edge, -sw.cross), s.H.clone().addScaledVector(edge, sw.cross), 0.011);
       ball(P.pommel, s.H.clone().addScaledVector(s.d, -sw.grip), sw.pommel, sw.pommel, sw.pommel * 0.65,
         new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(edge, s.d, flat)));
+      // the great stick is one round cane from butt to point: no blade, no cross
+      P.blade.visible = P.cross.visible = !sw.stick; P.grip.children[0].material = sw.stick ? M.cane : M.grip;
+      if (sw.stick) seg(P.grip, s.H.clone().addScaledVector(s.d, -sw.grip), s.H.clone().addScaledVector(s.d, sw.blade), 0.014);
+      // curved blade (sabre): the straight blade is replaced by short pieces following p(t) = H + d·tL − edge·c·t²,
+      // so the tip sweeps back toward the spine and the cutting edge (the knuckle-bow side) is convex
+      const curved = !!sw.curve && !sw.stick;
+      if (curved) P.blade.visible = false;
+      for (let i = 0; i < BSEGS; i++) {
+        const o = P["bs" + i]; o.visible = curved; if (!curved) continue;
+        const at = (t) => s.H.clone().addScaledVector(s.d, t * sw.blade).addScaledVector(edge, -sw.curve * t * t);
+        const t0 = i / BSEGS, t1 = (i + 1) / BSEGS, a = at(t0), b = at(t1), dir = b.clone().sub(a), len = dir.length();
+        dir.normalize();
+        const ex = edge.clone().addScaledVector(dir, -edge.dot(dir)).normalize(), ez = ex.clone().cross(dir).normalize();
+        const r = 0.021 + (0.004 - 0.021) * (t0 + t1) / 2; // the straight blade's taper, sampled mid-piece
+        frame(o, a, ex, dir, ez, 0.62 * r, len * 1.02, 0.28 * r);
+      }
       // rapier rings: one ring flat beside the blade just above the cross, and a bow from the cross to the pommel
-      P.ring.visible = P.bow.visible = !!sw.rapier;
-      if (sw.rapier) {
+      // a sabre has the knuckle bow only; the smallsword a small knuckle bow and a round cup
+      P.ring.visible = !!sw.rapier; P.bow.visible = !!(sw.rapier || sw.sabre || sw.small); P.cup.visible = !!sw.small;
+      if (sw.small) {
+        const cr = 0.058; // cup radius
+        ball(P.cup, s.H.clone().addScaledVector(s.d, 0.004), cr, 0.03, cr, new T.Quaternion().setFromUnitVectors(UP, s.d));
+      }
+      if (sw.rapier || sw.sabre || sw.small) {
+        const bw = sw.small ? 0.032 : 0.045; // bow width out from the grip
         const rq = new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(s.d, flat, edge));
         P.ring.position.copy(s.H).addScaledVector(s.d, 0.03).addScaledVector(flat, 0.034); P.ring.quaternion.copy(rq); P.ring.scale.set(0.032, 0.032, 0.5);
         const bq = new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(s.d, edge, flat.clone().negate()));
-        P.bow.position.copy(s.H).addScaledVector(s.d, -sw.grip / 2).addScaledVector(edge, 0.045); P.bow.quaternion.copy(bq); P.bow.scale.set(sw.grip / 2 + 0.01, 0.045, 0.5);
+        P.bow.position.copy(s.H).addScaledVector(s.d, -sw.grip / 2).addScaledVector(edge, bw); P.bow.quaternion.copy(bq); P.bow.scale.set(sw.grip / 2 + 0.01, bw, 0.5);
       }
       // buckler: its face points along bFace, the fist sits behind the boss
       const hasB = !!s.bFace;
@@ -454,7 +533,7 @@
           blade: [from.blade[0] + dYaw * e, l(from.blade[1], to.blade[1])], roll: l(from.roll || 0, to.roll || 0),
           buckler: to.buckler && (from.buckler ? from.buckler.map((v, i) => l(v, to.buckler[i])) : to.buckler),
           bucklerFace: to.bucklerFace && (from.bucklerFace ? from.bucklerFace.map((v, i) => l(v, to.bucklerFace[i])) : to.bucklerFace),
-          rapier: to.rapier, leftHand: to.leftHand && (from.leftHand ? from.leftHand.map((v, i) => l(v, to.leftHand[i])) : to.leftHand),
+          rapier: to.rapier, sabre: to.sabre, stick: to.stick, dagger: to.dagger, small: to.small, leftHand: to.leftHand && (from.leftHand ? from.leftHand.map((v, i) => l(v, to.leftHand[i])) : to.leftHand),
         }, { frame: false });
         if (t < 1) fig._raf = requestAnimationFrame(step); else done && done();
       };

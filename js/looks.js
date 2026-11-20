@@ -30,6 +30,15 @@
       look.thigh = chance(0.5) ? look.jacket : pick(R.breeches);
       look.shin = pick(R.hose); look.shoe = "#1d1712";
       look.ruff = chance(R.ruff); look.mustache = chance(0.75);
+      // La Touche (1670s France): always the broad plumed hat, long curled wig and lace cravat; some wear the long coat
+      if (R.hats) {
+        look.hat = true; look.hatColor = pick(R.hats); look.plumeColor = pick(R.plumes);
+        look.wig = true; look.cravat = true; look.coat = chance(R.coat || 0); look.beard = 0; look.mustache = chance(0.5);
+      }
+    } else if (R.style === "hutton") {
+      // Hutton (Victorian salle): a striped jersey, plain dark trousers, black shoes; most wear a moustache
+      look.stripes = pick(R.stripes); look.jacket = look.stripes[0];
+      look.thigh = look.shin = pick(R.trousers); look.shoe = "#1d1712"; look.mustache = chance(0.85);
     } else if (R.style === "i33") {
       // I.33: long washed-colour tunic, hose of another colour, bare-soled hose on the feet; half are the tonsured
       // priest, the rest the hooded scholar; mostly clean-shaven

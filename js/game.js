@@ -6,6 +6,10 @@
   const byId = Object.fromEntries(G.map((g) => [g.id, g]));
   // Same guard, or listed as equivalent (e.g. Langort = Posta Longa): either answer is right.
   const sameGuard = (a, b) => a === b || (window.EQUIVALENT || []).some((grp) => grp.includes(a) && grp.includes(b));
+  // guards of different masters that share a hand position (window.APART) are never shown in the same question
+  const apart = (a, b) => a !== b && (window.APART || []).some((grp) => grp.includes(a) && grp.includes(b)) &&
+    (ALL[a] || {}).master !== (ALL[b] || {}).master;
+  const ALL = Object.fromEntries(window.GUARDS.map((g) => [g.id, g])); // includes guards switched off
 
   // Storage: localStorage for the prototype; swap for Capacitor Preferences when packaging.
   const store = {
@@ -260,7 +264,7 @@
     // Wrong options come from the selected masters; only top up from the rest if the pool is too small.
     // Equivalent guards (window.EQUIVALENT) are never offered alongside the answer: that would be two right tiles.
     // Guards that share a name (Fabris's Prima/Quarta and the I.33 Prima/Quarta) never appear together either.
-    const others = run.pool.filter((x) => !sameGuard(x.id, g.id) && x.name !== g.name);
+    const others = run.pool.filter((x) => !sameGuard(x.id, g.id) && x.name !== g.name && !apart(x.id, g.id));
     let first = [];
     // Novice: two from the same tradition and one from the other (an easier one to rule out)
     if (run.tier === "novice") first = shuffle(others.filter((x) => x.tradition === g.tradition)).slice(0, 2)
@@ -270,7 +274,7 @@
       const twins = window.TWINS.filter((t) => t.includes(g.id)).flat().filter((id) => id !== g.id).map((id) => byId[id]).filter(Boolean);
       first = twins.concat(shuffle(others.filter((x) => x.tradition === g.tradition && !twins.includes(x))));
     }
-    const picks = [], ok = (x) => !picks.includes(x) && x.name !== g.name && !picks.some((p) => p.name === x.name);
+    const picks = [], ok = (x) => !picks.includes(x) && x.name !== g.name && !apart(x.id, g.id) && !picks.some((p) => p.name === x.name || apart(p.id, x.id));
     for (const x of (run.tier === "master" ? first : shuffle(first))) if (picks.length < 3 && ok(x)) picks.push(x);
     for (const x of shuffle(others)) if (picks.length < 3 && ok(x)) picks.push(x);
     for (const x of shuffle(G.filter((x) => !sameGuard(x.id, g.id)))) if (picks.length < 3 && ok(x)) picks.push(x);
@@ -280,7 +284,7 @@
     while (picks.filter((x) => x.tradition === g.tradition).length < 2 && same.length) {
       let i = -1; for (let k = picks.length - 1; k >= 0; k--) if (picks[k].tradition !== g.tradition) { i = k; break; }
       if (i < 0) break;
-      const nx = same.shift(); if (picks.some((p, k) => k !== i && p.name === nx.name)) continue;
+      const nx = same.shift(); if (picks.some((p, k) => k !== i && (p.name === nx.name || apart(p.id, nx.id)))) continue;
       picks[i] = nx;
     }
     return picks;

@@ -1115,3 +1115,28 @@ for (const e of window.BAKED_EDITS_16) {
   g.poses = g.poses || [g.pose];
   g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0];
 }
+
+// ---- Kept apart: guards of different masters that share a hand position (prime, seconde, tierce, quarte) ----
+// They are NOT the same guard — choosing one for the other is still wrong — but showing them in the same question
+// would be confusing, so two guards in one group from different masters never appear together. Within one master
+// (e.g. Hutton's Quarte and High Quarte) they still can: those are deliberate look-alikes.
+window.APART = [
+  ["fabris_prima", "hutton_hanging", "hutton_p_prime", "hutton_p_high_prime", "hutton_p_low_prime", "latouche_first"],
+  ["fabris_seconda", "hutton_p_seconde", "hutton_p_high_seconde", "latouche_second", "latouche_seconde_low"],
+  ["fabris_terza", "hutton_outside", "hutton_p_tierce", "hutton_p_low_tierce", "hutton_p_high_tierce", "latouche_third", "latouche_engage_tierce"],
+  ["fabris_quarta", "hutton_inside", "hutton_p_quarte", "hutton_p_low_quarte", "hutton_p_high_quarte", "hutton_p_horizontal_quarte",
+   "latouche_fourth", "latouche_quarte_low", "latouche_engage_quarte"],
+];
+
+// ---- Player edits, seventeenth batch: Hutton parries switched off (baked 2026-11-20 from Firefox stance-off-poses(7).json) ----
+window.BAKED_EDITS_17 = [
+  {"name":"Used in the game: Parry of Low Prime","saved":"2026-11-20T10:46:16.268Z","kind":"use","guard":"hutton_p_low_prime","used":false},
+  {"name":"Used in the game: Parry of Septime","saved":"2026-11-20T10:46:18.364Z","kind":"use","guard":"hutton_p_septime","used":false},
+  {"name":"Used in the game: Parry of Seconde","saved":"2026-11-20T10:46:21.198Z","kind":"use","guard":"hutton_p_seconde","used":false},
+  {"name":"Used in the game: Parry of Octave","saved":"2026-11-20T10:46:23.566Z","kind":"use","guard":"hutton_p_octave","used":false},
+];
+for (const e of window.BAKED_EDITS_17) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (g && e.kind === "use") g.unused = !e.used;
+}

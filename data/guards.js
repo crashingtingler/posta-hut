@@ -625,3 +625,30 @@ for (const e of window.BAKED_EDITS_5) {
   if (e.addVariant) g.poses.push(e.pose);
   else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
 }
+// ---- Player edits, sixth batch: I.33 Sexta main pose (baked 2026-11-19 from stance-off-poses (8).json, saved in Chrome) ----
+window.BAKED_EDITS_6 = [
+  {"name":"Sexta (right) v1","saved":"2026-11-20T04:14:28.157Z","guard":"i33_sexta","side":"right","vi":0,"pose":{"lead":"left","stance":1,"width":0.3,"crouch":0.2,"shift":0.08,"turn":38,"twist":15,"lean":12,"hilt":[0.154,1.03,0.232],"blade":[-18,-2],"poleR":[-1.118,-0.15,-0.03],"buckler":[0.744,1.06,-0.136],"bucklerFace":[-15,0],"elbowR":-50,"headTurn":-23}},
+];
+for (const e of window.BAKED_EDITS_6) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g || !e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  if (e.addVariant) g.poses.push(e.pose);
+  else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
+}
+
+// ---- Player edits, seventh batch: Fabris main poses (baked 2026-11-19 from stance-off-poses (9).json, saved in Chrome) ----
+window.BAKED_EDITS_7 = [
+  {"name":"Seconda (right)","saved":"2026-11-20T04:21:50.516Z","guard":"fabris_seconda","side":"right","vi":0,"pose":{"rapier":true,"lead":"right","stance":0.55,"width":0.2,"crouch":0.14,"shift":-0.25,"turn":-30,"twist":-10,"lean":60,"headNod":15,"hilt":[0.69,1.28,0.08],"blade":[0,-2],"roll":-90,"leftHand":[0.22,1.18,-0.36],"view":160}},
+  {"name":"Prima (right) v1","saved":"2026-11-20T04:22:41.074Z","guard":"fabris_prima","side":"right","vi":0,"pose":{"rapier":true,"lead":"right","stance":0.13,"width":0.2,"crouch":0.05,"shift":-0.25,"turn":-30,"twist":-10,"lean":60,"headNod":20,"hilt":[0.64,1.44,0.12],"blade":[0,0],"roll":-150,"leftHand":[0.25,1.24,-0.34],"view":160,"elbowR":-89}},
+  {"name":"Terza (right) v1","saved":"2026-11-20T04:23:05.904Z","guard":"fabris_terza","side":"right","vi":0,"pose":{"rapier":true,"lead":"right","stance":0.7,"width":0.24,"crouch":0.23,"shift":-0.24,"turn":-25,"twist":-10,"lean":45,"hilt":[0.67,1.1,0.05],"blade":[0,2],"leftHand":[0.05,1.18,-0.26],"view":160}},
+];
+for (const e of window.BAKED_EDITS_7) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g || !e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  if (e.addVariant) g.poses.push(e.pose);
+  else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
+}

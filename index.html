@@ -41,6 +41,7 @@
         <button class="big" data-go="salle">The Salle<small>Study every guard</small></button>
         <button class="big" data-go="hall">Hall of Masters<small>Celerity · Fortitude</small></button>
       </div>
+      <button class="big armoury-btn" data-go="armoury">The Armoury<small>Spend XP on guards, swords and garb</small></button>
       <button class="big support-btn" data-go="support"><span class="seal-ico" aria-hidden="true"></span>Support the Salle<small>Posta hut is free. Tips keep it sharp.</small></button>
     </div>
 
@@ -223,6 +224,24 @@
     <div class="salle-list" id="salle-list"></div>
     <button class="big ghost" data-go="title">Back</button>
   </section>
+  <!-- ARMOURY: your own fencer; spend XP on guards, swords, garb and hats -->
+  <section id="armoury" class="screen">
+    <div class="arm-top">
+      <div class="arm-head"><button class="arm-back" data-go="title" aria-label="Back to the menu">‹ Menu</button><h2>The Armoury</h2><span class="arm-purse"><b id="arm-purse">0</b> XP</span></div>
+      <div class="arm-stage" id="arm-stage" aria-label="Your fencer — drag to turn">
+        <div class="arm-fig" id="arm-fig"></div>
+        <div class="arm-zoom"><button id="arm-zin" aria-label="Zoom in">+</button><button id="arm-zout" aria-label="Zoom out">−</button><button id="arm-up" aria-label="Move the view up" title="Move the view up">▲</button><button id="arm-down" aria-label="Move the view down" title="Move the view down">▼</button><button id="arm-rl" aria-label="Turn left" title="Turn left">↶</button><button id="arm-rr" aria-label="Turn right" title="Turn right">↷</button><button id="arm-zreset" class="arm-reset" aria-label="Reset the view" title="Reset the view">Reset</button></div>
+        <p class="arm-cap" id="arm-cap"></p>
+        <div class="arm-act"><button class="big" id="arm-buy">Buy</button><button class="big ghost hidden" id="arm-reset">Put back</button></div>
+      </div>
+      <div class="arm-tabs" id="arm-tabs" role="tablist"></div>
+    </div>
+    <div class="arm-scroll" id="arm-scroll">
+      <p class="arm-hint" id="arm-hint"></p>
+      <div class="arm-grid" id="arm-grid"></div>
+      <p class="arm-hint">Spending XP here never lowers your score in the Hall of Masters.</p>
+    </div>
+  </section>
   <div id="vzoom" class="vzoom hidden" role="dialog" aria-label="Variant, zoomed">
     <button class="vzoom-x" id="vzoom-x" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4.2 5.6 C9 9.5 14 14.5 19.4 19.8 C15.6 14.2 10.8 8.8 5.6 4.2 Z M19.8 4.6 C14.5 9 9.5 14 4.6 19.4 C9.8 15.6 15 10.6 18.4 4.2 Z" fill="currentColor" stroke="currentColor" stroke-width="0.9" stroke-linejoin="round"/></svg></button>
     <div class="vzoom-stage" id="vzoom-stage"></div>
@@ -249,6 +268,7 @@
 <script src="js/audio.js"></script>
 <script src="js/tips.js"></script>
 <script src="js/report.js"></script>
+<script src="js/armoury.js"></script>
 <script src="js/game.js"></script>
 <script>
 // Installable offline app: save the game on this device (only when served from a web address, not a local file)

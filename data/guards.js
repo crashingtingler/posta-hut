@@ -1140,3 +1140,24 @@ for (const e of window.BAKED_EDITS_17) {
   const g = window.GUARDS.find((x) => x.id === e.guard);
   if (g && e.kind === "use") g.unused = !e.used;
 }
+
+// ---- The Armoury's own stances (2026-11-20) ----
+// Not guards of any master: never asked in the quiz or shown in the Salle (armoury: true), but listed in the Guard Editor
+// so the player can pose them; saved edits apply through pose-edits.js like any guard's.
+window.GUARDS.push(
+  // At Ease: variant 1 the sword held point down with the left hand free, variant 2 (was "At Ease, Shouldered") for
+  // two-handers. Poses baked from the player's editor saves (stance-off-poses(10).json, 2026-11-20).
+  { id: "at_ease", name: "At Ease", variants: [], tradition: "armoury", master: "armoury", armoury: true, note: "Free",
+    sideUse: { right: true, left: false }, plate: null, source: "", tip: "Standing at rest.",
+    poses: [
+      {lead: "left", stance: 0.34, width: 0.22, crouch: 0.02, turn: 25, twist: 0, lean: 2, hilt: [0.237,1.2,0.14], blade: [-178,54], view: 25, leftHand: [0.09,1.02,-0.15], freeLeft: true, handA: 0.055, roll: 66},
+      {lead: "left", stance: 0.3, width: 0.25, crouch: 0.02, turn: 10, twist: 0, lean: 0, hilt: [0.25,0.88,0.06], blade: [-118,-90], headTurn: 5, view: 120, leftHand: [0.289,0.829,-0.006], roll: -89},
+    ] },
+  { id: "bazooka_ready", name: "Shoulder Arms", variants: [], tradition: "armoury", master: "armoury", armoury: true, note: "A stance for the bazooka",
+    weapon: { bazooka: true, blade: 0.9, grip: 0.62, handA: 0, handB: -0.32, cross: 0 }, // drawn in the Guard Editor
+    sideUse: { right: true, left: false }, plate: null, source: "", tip: "The launcher on the right shoulder, the left hand forward on the tube.",
+    pose: {lead: "left", stance: 0.55, width: 0.26, crouch: 0.07, turn: 20, twist: 0, lean: 6, view: 40, hilt: [0.16,1.39,0.16], blade: [10,2], headTurn: 10, headNod: 8, poleL: [0,-1,-0.3], roll: 0} },
+);
+for (const g of window.GUARDS) if (g.armoury && g.poses && !g.pose) g.pose = g.poses[0];
+// these editor saves are baked above; pose-edits.js skips them so they don't apply twice in the player's browser
+for (const [name, e] of Object.entries({"At Ease (right)":"2026-11-20T12:59:24.922Z","Shoulder Arms (right)":"2026-11-20T13:00:54.718Z","At Ease, Shouldered (right)":"2026-11-20T13:02:25.045Z"})) window.BAKED_SAVED.add(name + "|" + e);

@@ -100,15 +100,22 @@
 
   <section>
     <h2>Arms &amp; sword</h2>
+    <div class="row"><label style="flex:1">Weapon shown <select id="weapon-sel" style="width:100%"></select></label></div>
+    <p class="hint" style="margin-top:0">Only changes what the fencer holds here, to pose a guard for it (any Armoury weapon). The pose saves as usual; the weapon is not saved with it.</p>
     <div class="row"><button id="mode-move" class="on">Drag moves the hilt</button><button id="mode-aim">Drag aims the point</button></div>
     <p class="hint">Drag on the fencer to place the sword; the arms and body follow. Right-drag (or Alt+drag) turns the camera.</p>
     <div id="s-sword"></div>
     <div class="row"><button id="thumb">Thumb grip: turn the crossguard 90°</button><button id="roll0">Normal grip</button></div>
+    <div id="grip-box"><h2 style="margin-top:10px">Hands on the weapon</h2>
+    <div class="row" id="snap-row"><label><input type="checkbox" id="snap-left"> Left hand on the weapon</label></div>
+    <p class="hint" style="margin-top:0">Untick to let go with the left hand and place it freely (sliders under "Left hand"); tick again and it snaps back to the grip. The two sliders below move each hand along the grip (distance from the cross toward the pommel), so you can set the spacing between the hands.</p>
+    <div id="s-grip"></div>
+    <div class="row"><button id="grip-reset">Hands back to the weapon's own grip</button></div></div>
     <div id="buckler-box" style="display:none"><h2 style="margin-top:10px">Buckler</h2>
     <p class="hint">Sword and buckler (I.33): where the left fist holds the buckler, and which way its face points.</p>
     <div id="s-buckler"></div></div>
     <div id="lefthand-box" style="display:none"><h2 style="margin-top:10px">Left hand</h2>
-    <p class="hint">Rapier (Fabris), sabre and dagger (Hutton), smallsword (La Touche): where the free left hand is held.</p>
+    <p class="hint">Where the free left hand is held (one-handed weapons, or any guard with the left hand off the weapon).</p>
     <div id="s-lefthand"></div></div>
     <h2 style="margin-top:10px">Elbows</h2>
     <p class="hint">Swing each elbow around the line from shoulder to hand (0° = automatic). The hand stays on the grip.</p>
@@ -190,6 +197,7 @@
 <script src="js/pose-edits.js"></script>
 <script src="js/looks.js"></script>
 <script src="js/fencer3d.js"></script>
+<script src="js/armoury.js"></script>
 <script>
 (function () {
   const T = THREE, $ = (s) => document.querySelector(s), G = GUARDS, E = PoseEdits;
@@ -238,6 +246,9 @@
     "s-lefthand": [
       ["Left hand forward", ["leftHand", 0], -1.5, 2.0, 0.01, "m"], ["Left hand height", ["leftHand", 1], -0.2, 3.0, 0.01, "m"], ["Left hand side", ["leftHand", 2], -1.2, 1.2, 0.01, "m"],
     ],
+    "s-grip": [
+      ["Right hand on grip", ["handA"], -0.3, 0.8, 0.005, "m"], ["Left hand on grip", ["handB"], -0.6, 1.4, 0.005, "m"],
+    ],
     "s-elbows": [
       ["Right elbow", ["elbowR"], -180, 180, 1, "°"], ["Left elbow", ["elbowL"], -180, 180, 1, "°"],
     ],
@@ -284,7 +295,9 @@
       $("#" + box).appendChild(row);
     }
   }
-  const getPath = (o, p) => p.reduce((a, k) => (a == null ? a : a[k]), o);
+  const getPath = (o, p) => { const v = p.reduce((a, k) => (a == null ? a : a[k]), o);
+    if (v == null && (p[0] === "handA" || p[0] === "handB")) { const sw = Fencer3D.solve(o, curWeapon).sw; return p[0] === "handA" ? sw.handA : sw.handB != null ? sw.handB : Fencer3D.B.handB; }
+    return v; };
   const setPath = (o, p, v) => { if (p.length === 1) o[p[0]] = v; else { if (!o[p[0]]) o[p[0]] = p[0] === "bucklerFace" ? [0, 0] : p[0] === "leftHand" ? Fencer3D.solve(o).handL.toArray().map((x) => +x.toFixed(3)) : [0, 0, 0]; o[p[0]][p[1]] = v; } };
 
   // ---------- the body carries what it holds ----------
@@ -311,7 +324,7 @@
     };
     pose.hilt = pt(base.hilt); pose.blade = ang(base.blade);
     if (base.buckler) { pose.buckler = pt(base.buckler); pose.bucklerFace = ang(base.bucklerFace || [0, 0]); }
-    if (base.rapier || base.sabre || base.dagger || base.small) pose.leftHand = pt(base.leftHand || Fencer3D.solve(base).handL.toArray());
+    if (base.rapier || base.sabre || base.dagger || base.small || base.freeLeft) pose.leftHand = pt(base.leftHand || Fencer3D.solve(base).handL.toArray());
     for (const k of ["poleR", "poleL"]) if (base[k]) pose[k] = dir(base[k]);
   }
   function syncSliders() {
@@ -350,14 +363,40 @@
     }
   }
 
+  // ---------- weapon shown ----------
+  let curWeapon = null;
+  const wsel = $("#weapon-sel");
+  { const own = document.createElement("option"); own.value = ""; own.textContent = "The guard's own weapon"; wsel.appendChild(own);
+    const groups = {};
+    for (const m of Armoury.SWORDS) {
+      const og = groups[m.cls] || (groups[m.cls] = Object.assign(document.createElement("optgroup"), { label: m.cls }));
+      const o = document.createElement("option"); o.value = m.id; o.textContent = m.name; og.appendChild(o);
+    }
+    const labels = { long: "Longswords", two: "Two-handers", arming: "Arming swords", rapier: "Rapiers", sabre: "Sabres", small: "Smallswords",
+      ancient: "Ancient", japan: "Japanese", iberia: "Portuguese & Iberian", africa: "African", filipino: "Filipino", axes: "Axes", maces: "Maces & clubs",
+      spears: "Spears", polearms: "Polearms", americas: "Indigenous Americas", oceania: "Australia & Oceania", other: "Other arms" };
+    for (const [k, og] of Object.entries(groups)) { og.label = labels[k] || k; wsel.appendChild(og); }
+    try { wsel.value = localStorage.getItem("so.editorWeapon") || ""; } catch (e) { /* private mode */ }
+  }
+  function applyWeapon() {
+    curWeapon = wsel.value ? Armoury.swordSpec(wsel.value, "steel") : (guard && guard.weapon) || null;
+    fig.setSword(curWeapon);
+  }
+  wsel.addEventListener("change", () => { try { localStorage.setItem("so.editorWeapon", wsel.value); } catch (e) { /* private mode */ } applyWeapon(); refresh(true); });
+
   // ---------- render + readout ----------
   function refresh(reframe) {
     fig.set(pose, { frame: !!reframe });
     const s = Fencer3D.solve(pose), B = Fencer3D.B;
     hiltMark.position.copy(s.H);
-    tipMark.position.copy(s.H.clone().addScaledVector(s.d, s.sw.blade));
+    const sw = curWeapon ? Fencer3D.solve(pose, curWeapon) : s; // the point marker sits at the tip of the weapon shown
+    tipMark.position.copy(sw.H.clone().addScaledVector(sw.d, sw.sw.blade));
     $("#buckler-box").style.display = pose.buckler ? "" : "none";
-    $("#lefthand-box").style.display = pose.rapier || pose.sabre || pose.dagger || pose.small ? "" : "none";
+    const oneHand = pose.rapier || pose.sabre || pose.dagger || pose.small;
+    $("#lefthand-box").style.display = oneHand || pose.freeLeft ? "" : "none";
+    // the left hand on/off switch: for weapons held in both hands (not buckler guards or one-handed weapons)
+    $("#snap-row").style.display = pose.buckler || oneHand ? "none" : "";
+    $("#snap-left").checked = !pose.freeLeft;
     fig.render();
     syncSliders(); syncPoles();
     // readout
@@ -381,6 +420,13 @@
   let undoStack = [], redoStack = [], committed = null;
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   function resetHistory() { undoStack = []; redoStack = []; committed = clone(pose); updateUndoButtons(); }
+  // left hand on / off the weapon; letting go keeps the hand where it was, so nothing jumps
+  $("#snap-left").addEventListener("change", () => {
+    if ($("#snap-left").checked) delete pose.freeLeft;
+    else { pose.leftHand = Fencer3D.solve(pose, curWeapon).handL.toArray().map((x) => +x.toFixed(3)); pose.freeLeft = true; }
+    refresh(false); commit();
+  });
+  $("#grip-reset").addEventListener("click", () => { delete pose.handA; delete pose.handB; refresh(false); commit(); });
   function commit() {
     if (committed && !same(committed, pose)) {
       undoStack.push(committed);
@@ -513,7 +559,7 @@
 
   // ---------- opening guards ----------
   const sel = $("#guard");
-  for (const g of G) { const o = document.createElement("option"); o.value = g.id; o.textContent = `${g.name}  (${g.master})`; sel.appendChild(o); }
+  for (const g of G) { const o = document.createElement("option"); o.value = g.id; o.textContent = g.armoury ? `${g.name}  (Armoury stance)` : `${g.name}  (${g.master})`; sel.appendChild(o); }
   sel.addEventListener("change", () => open(G.find((g) => g.id === sel.value), "right", 0));
   $("#side-right").onclick = () => open(guard, "right", vi);
   $("#side-left").onclick = () => open(guard, "left", vi);
@@ -546,6 +592,9 @@
     const used = sidesOf(guard);
     $("#use-right").checked = used.includes("right"); $("#use-left").checked = used.includes("left");
     $("#use-guard").checked = !guard.unused;
+    // the Armoury's own stances (At Ease, Shoulder Arms) are never in the quiz: no game on/off switches for them
+    for (const id of ["use-guard", "use-right"]) $("#" + id).closest(".row").style.display = guard.armoury ? "none" : "";
+    $("#use-note").style.display = guard.armoury ? "none" : "";
     $("#use-right").disabled = $("#use-left").disabled = !!guard.unused;
     $("#use-note").textContent = guard.unused ? "This guard is not used in the game; it can still be edited here."
       : used.includes(side) ? "" : `The ${side} side is switched off: the game never asks it.`;
@@ -580,6 +629,7 @@
     guard = g; side = s === "left" ? "left" : "right"; vi = Math.min(v, variantsOf(g).length - 1);
     sel.value = g.id;
     pose = effectivePose(guard, side, vi);
+    applyWeapon(); // the weapon picked in "Weapon shown", else the guard's own (Shoulder Arms: the bazooka)
     syncSideUse();
     $("#side-right").classList.toggle("on", side === "right"); $("#side-left").classList.toggle("on", side === "left");
     const vb = $("#variants"); vb.innerHTML = "";
@@ -867,6 +917,14 @@ ${clash.join(", ")}`)) return;
       mk("#a33", (f2) => { drop(f2); setTimeout(() => { const before = choiceNow(); const btns = [...document.querySelectorAll("#myplates .mp")]; btns[1].querySelector("button").click();
         document.title = `nebenhut=${neb.slice(0, 1)} ochsBefore=${before} ochsAfter=${choiceNow().slice(0, 1)} plates=${btns.length}`; }, 400); }); }, 400); });
   }, 300);
+  if (start.includes("snaptest")) setTimeout(() => { // test: let go with the left hand, move it down, then change the hand spacing
+    open(G.find((g) => g.id === "at_ease"), "right", 0); const before = Fencer3D.solve(pose).handL.y.toFixed(2);
+    $("#snap-left").checked = false; $("#snap-left").dispatchEvent(new Event("change"));
+    pose.leftHand[1] -= 0.3; refresh(false); const after = Fencer3D.solve(pose).handL.y.toFixed(2), box = $("#lefthand-box").style.display;
+    $("#snap-left").checked = true; $("#snap-left").dispatchEvent(new Event("change")); const snapped = Fencer3D.solve(pose).handL.y.toFixed(2);
+    pose.handB = 0.1; refresh(false); const s2 = Fencer3D.solve(pose), sp = s2.handR.distanceTo(s2.handL).toFixed(3);
+    document.title = "snap before=" + before + " freed=" + after + " box=" + (box || "shown") + " snapped=" + snapped + " spacing@0.1=" + sp;
+  }, 300);
   if (start.includes("usetest")) setTimeout(() => { open(G.find((g) => g.id === "alber"), "right", 0); $("#use-guard").checked = false; $("#use-guard").dispatchEvent(new Event("change")); document.title = "alber unused=" + guard.unused + " sidesDisabled=" + $("#use-left").disabled; }, 300);
   if (start.includes("sidetest")) setTimeout(() => { // test hook: Ochs left off, Alber left on, Alber both off refused
     const n0 = STANCES.length; window.confirm = () => true;
@@ -892,7 +950,7 @@ ${clash.join(", ")}`)) return;
     const r0 = rel(), h0 = pose.hilt.join(",");
     let inp = slider("Lean fwd / back"); inp.value = +inp.value + 15; inp.dispatchEvent(new Event("input")); inp.dispatchEvent(new Event("change"));
     inp = slider("Crouch"); inp.value = +inp.value + 0.1; inp.dispatchEvent(new Event("input")); inp.dispatchEvent(new Event("change"));
-    const s = Fencer3D.solve(pose), gap = Math.round(s.handR.distanceTo(s.armR.end) * 100);
+    const s = Fencer3D.solve(pose, curWeapon), gap = Math.round(s.handR.distanceTo(s.armR.end) * 100);
     document.title = `rel before=${r0} after=${rel()} hilt ${h0} -> ${pose.hilt.join(",")} gapR=${gap}cm`;
   }, 300);
   if (start.includes("steptest")) setTimeout(() => { // test hook: + on hilt height, shift + , then undo once

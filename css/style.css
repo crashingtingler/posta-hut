@@ -536,3 +536,75 @@ html.app .hammer { display: none; }
 .report-go { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-top: 10px; }
 .report-go .big { min-height: 46px; }
 .report-go .big:disabled { opacity: .45; cursor: default; }
+
+/* ---------- The Armoury ---------- */
+/* the fencer stays on screen at the top; only the list of things below scrolls */
+.armoury-btn { min-height: 58px; }
+#armoury.screen { overflow: hidden; padding-bottom: 0; }
+.arm-top { flex-shrink: 0; }
+.arm-head { display: flex; align-items: center; gap: 8px; }
+.arm-head h2 { flex: 1; margin: 0; text-align: center; font-family: var(--black); font-weight: 400; font-size: 28px; }
+.arm-back { border: 1.5px solid var(--ink-2); background: transparent; border-radius: 3px; padding: 4px 8px; font-size: 15px; min-height: 36px; color: var(--ink); }
+.arm-purse { font-size: 14px; white-space: nowrap; }
+.arm-purse b { font-family: var(--black); font-weight: 400; font-size: 21px; color: var(--red); }
+.arm-stage { position: relative; height: clamp(190px, 36vh, 300px); cursor: grab; touch-action: none; overflow: hidden; }
+.arm-zoom { position: absolute; top: 4px; right: 0; display: flex; flex-direction: column; gap: 3px; z-index: 2; }
+.arm-zoom button { width: 30px !important; height: 30px !important; font-size: 15px !important; }
+.arm-zoom .arm-reset { width: auto !important; height: 22px !important; font-size: 11px !important; }
+.arm-zoom button { width: 32px; height: 32px; border: 1.5px solid var(--ink-2); border-radius: 50%; background: rgba(239,226,196,.9); color: var(--ink);
+  font-size: 18px; line-height: 1; padding: 0; }
+.arm-stage:active { cursor: grabbing; }
+.arm-fig { position: absolute; inset: 0; }
+.arm-fig canvas { display: block; width: 100%; height: 100%; }
+.arm-cap { position: absolute; left: 0; right: 0; bottom: 50px; margin: 0; text-align: center; font-style: italic; color: var(--ink-2); font-size: 14px;
+  text-shadow: 0 0 4px var(--parch), 0 0 2px var(--parch); pointer-events: none; }
+.arm-act { position: absolute; left: 0; right: 0; bottom: 2px; display: flex; gap: 8px; justify-content: center; }
+.arm-act .big { flex: 0 1 auto; min-width: 120px; max-width: 260px; min-height: 42px; font-size: 16px; padding: 4px 12px; }
+.arm-act .big.ghost { background: rgba(239,226,196,.85); }
+.arm-act .big.confirm { background: linear-gradient(180deg, #fbf1d6 0%, #efdcaa 100%); border-color: #8a6418; color: var(--red); }
+.arm-act .big:disabled { opacity: .7; }
+.arm-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 6px 0 8px; scrollbar-width: none; border-bottom: 1.5px solid var(--ink-2); }
+.arm-tabs::-webkit-scrollbar { display: none; }
+.arm-tabs button { flex: 0 0 auto; border: 1.5px solid var(--ink-2); background: transparent; border-radius: 16px; padding: 6px 12px; font-size: 15px; min-height: 36px; color: var(--ink); }
+.arm-tabs button.on { background: var(--ink); color: var(--parch); }
+.arm-scroll { flex: 1 1 auto !important; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+.arm-hint { text-align: center; font-size: 13px; font-style: italic; color: var(--ink-2); margin: 6px 0; }
+.arm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 8px; }
+.arm-grid h4 { grid-column: 1 / -1; margin: 10px 0 0; font-weight: 400; font-style: italic; }
+.arm-item, .arm-sword { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 6px 8px;
+  border: 1.5px solid var(--ink-2); border-radius: 3px; background: rgba(255,250,235,.5); color: var(--ink); text-align: center; cursor: pointer; }
+.arm-item img { width: 100%; max-width: 140px; object-fit: contain; }
+.arm-sword canvas { width: 100%; height: auto; aspect-ratio: 240 / 64; }
+.arm-name { font-family: var(--black); font-size: 17px; line-height: 1.05; }
+.arm-item small, .arm-sword small { font-size: 12px; font-style: italic; color: var(--ink-2); line-height: 1.2; }
+.arm-tag { font-family: var(--sc, var(--body)); font-size: 13px; color: var(--red); margin-top: 2px; }
+.arm-item.owned .arm-tag { color: var(--ink-2); }
+.arm-item.worn { border: 3px double var(--gold); background: #f3e4b9; }
+.arm-item.worn .arm-tag { color: #7d5a14; }
+.arm-item.sel, .arm-sword.sel { box-shadow: 0 0 0 3px var(--ink); }
+.arm-sword.worn { border: 3px double var(--gold); }
+.fins { display: flex; gap: 5px; margin-top: 4px; flex-wrap: wrap; justify-content: center; }
+.fin { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--fin); padding: 0; position: relative; }
+.fin-wood { background: repeating-linear-gradient(100deg, #8a5a2b 0 3px, #b8925a 3px 6px); }
+.fin.owned::after, .fin.worn::after { content: "✓"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 14px; font-weight: 700;
+  color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000; }
+.fin.worn { box-shadow: 0 0 0 2px var(--parch), 0 0 0 4px var(--gold); }
+.fin.sel { box-shadow: 0 0 0 2px var(--parch), 0 0 0 4px var(--ink); }
+.arm-fin-name { font-size: 12px; color: var(--ink-2); min-height: 1.2em; }
+.arm-colors { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 4px; padding: 6px 4px; border: 1.5px dashed var(--ink-2); border-radius: 3px; }
+.arm-colors-l { font-size: 13px; font-style: italic; color: var(--ink-2); }
+.arm-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+.csw { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--ink); padding: 0; }
+.csw.orig { background: repeating-linear-gradient(135deg, #efe2c4 0 4px, #c9b48a 4px 8px); }
+.csw.on { box-shadow: 0 0 0 2px var(--parch), 0 0 0 4px var(--ink); }
+@media (max-width: 380px) { .arm-grid { grid-template-columns: 1fr 1fr; gap: 6px; } .arm-name { font-size: 15px; } .fins { gap: 3px; } .fin { width: 20px; height: 20px; }
+  .fin.owned::after, .fin.worn::after { font-size: 12px; } .arm-head h2 { font-size: 23px; } }
+.arm-var { position: absolute; top: 4px; right: 4px; display: flex; align-items: center; gap: 3px; border: 1.5px solid var(--ink-2); border-radius: 12px;
+  background: rgba(239,226,196,.92); color: var(--ink); font-size: 18px; line-height: 1; padding: 2px 7px 3px; min-height: 26px; }
+.arm-var span { font-size: 11px; color: var(--ink-2); }
+.arm-zoom .arm-reset { width: auto; border-radius: 12px; font-size: 11px; padding: 0 5px; height: 24px; }
+.csw { position: relative; }
+.csw.fin-wood { background: repeating-linear-gradient(100deg, #8a5a2b 0 3px, #b8925a 3px 6px); }
+.csw.owned::after { content: "✓"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 14px; font-weight: 700; color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000; }
+/* "Not quite" / "Too slow": Continue stays pinned to the bottom of the sheet, so it never needs a scroll to reach */
+#fbw-next { position: sticky; bottom: 0; z-index: 3; margin-top: 8px; box-shadow: 0 -10px 12px 4px var(--parch), inset 0 0 0 1px rgba(255,250,235,.7), 0 2px 0 rgba(29,23,18,.28); }

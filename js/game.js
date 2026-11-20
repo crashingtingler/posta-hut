@@ -2,7 +2,7 @@
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
   // guards switched off in the stance editor ("Use this guard in the game") are left out entirely
-  const G = window.GUARDS.filter((g) => !g.unused), T = window.TRADITIONS;
+  const G = window.GUARDS.filter((g) => !g.unused && !g.armoury), T = window.TRADITIONS; // (Armoury stances are not guards to quiz on)
   const byId = Object.fromEntries(G.map((g) => [g.id, g]));
   // Same guard, or listed as equivalent (e.g. Langort = Posta Longa): either answer is right.
   const sameGuard = (a, b) => a === b || (window.EQUIVALENT || []).some((grp) => grp.includes(a) && grp.includes(b));
@@ -89,6 +89,7 @@
     if (id === "support") { renderSupport(); Sfx.preloadCoin && Sfx.preloadCoin(); }
     if (id === "settings") $("#settings-name").textContent = me() || "—";
     if (id === "setup") renderSetup();
+    if (id === "armoury") Armoury.render();
   }
   document.addEventListener("click", (e) => {
     const go = e.target.closest("[data-go]"); if (go) { Sfx.quill(); show(go.dataset.go); }
@@ -559,6 +560,8 @@
     store.set("player", name);
   }
 
+  Armoury.init({ myRecord, saveRecord, guards: G, traditions: T });
+
   function finish() {
     const acc = run.answered ? Math.round((run.correct / run.answered) * 100) : 0;
     $("#res-title").textContent = run.mode === "bout" ? "Bout complete" : `Survival: ${run.correct} guards`;
@@ -817,6 +820,8 @@
   if (demo === "play" || demo === "wrong" || demo === "result") {
     settings.reducedMotion = true; startRun("bout");
     if (demo === "wrong") setTimeout(() => { const g = run.guard; answer(run.pool.find((x) => x.id !== g.id).id); }, run.view === "manuscript" ? 600 : 0);
+    if (demo === "wrong" && /measure/.test(location.hash)) setTimeout(() => { $("#fb-wrong").style.animation = "none"; const r = $("#fb-wrong").getBoundingClientRect(), b = $("#fbw-next").getBoundingClientRect(), p = $("#play");
+      document.title = "sheet top=" + Math.round(r.top) + " h=" + Math.round(r.height) + " scrollH=" + $("#fb-wrong").scrollHeight + " btn=" + Math.round(b.top) + "-" + Math.round(b.bottom) + " vh=" + innerHeight + " playScroll=" + p.scrollTop + "/" + p.scrollHeight; }, 1500);
     if (demo === "result") { run.score = 1840; run.answered = 10; run.correct = 9; run.bestCombo = 6; run.fastest = 1.12; run.missed = ["ochs"]; finish(); }
   } else if (demo === "equiv") {
     // Test hook: Langort question answered with Posta Longa must count as correct;
@@ -845,6 +850,21 @@
     const st = $("#vzoom-stage"), ev = (t, x) => st.dispatchEvent(new PointerEvent(t, { clientX: x, pointerId: 1, bubbles: true }));
     try { ev("pointerdown", 100); ev("pointermove", 250); ev("pointerup", 250); } catch (e) {}
     document.title = `zoom open=${!$("#vzoom").classList.contains("hidden")} yaw=${Math.round(zoomYaw)}`;
+  }
+  else if (demo === "armoury") {
+    // Screenshot hook: index.html#demo=armoury[&tab=swords|garb|hats|guards|odd][&try=<item id>][&xp=N]
+    const r = myRecord(), xp = +(location.hash.match(/xp=(\d+)/) || [])[1];
+    if (xp) { r.xp = xp; saveRecord(r); }
+    const t = (location.hash.match(/tab=(\w+)/) || [])[1]; if (t) Armoury.setTab(t);
+    settings.reducedMotion = true; show("armoury");
+    const tr = (location.hash.match(/try=([\w:]+)/) || [])[1];
+    if (tr) { const el = document.querySelector(`#arm-grid [data-item="${tr}"]`); if (el) el.click(); }
+    if (/vartest/.test(location.hash)) { const c = document.querySelector("#arm-grid [data-item=\"st:ochs\"]"); const b = c.querySelector(".arm-var"); const t = [b.textContent]; b.click(); t.push(b.textContent); c.click(); document.title = "var " + t.join(" -> "); }
+    if (/zoomtest/.test(location.hash)) { $("#arm-zin").click(); $("#arm-zin").click(); if (/up3/.test(location.hash)) for (let i = 0; i < 3; i++) $("#arm-up").click(); show("title"); show("armoury"); document.title = "zoom cam=" + localStorage.getItem("so.armCam"); }
+    if (/buy/.test(location.hash)) { // test: two taps buy the tried item, then report the record
+      const p0 = myRecord(); $("#arm-buy").click(); const one = myRecord(); $("#arm-buy").click(); const r2 = myRecord();
+      document.title = `buy spent0=${p0.spent || 0} after1tap=${one.spent || 0} after2=${r2.spent} owned=${(r2.owned || []).join(",")} kit=${JSON.stringify(r2.kit)} purse=${$("#arm-purse").textContent} btn=${$("#arm-buy").textContent}`;
+    }
   }
   else if (demo) show(demo);
 })();

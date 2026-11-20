@@ -652,3 +652,31 @@ for (const e of window.BAKED_EDITS_7) {
   if (e.addVariant) g.poses.push(e.pose);
   else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
 }
+
+// ---- Player edits, eighth batch: Hangetort variant 3 (baked 2026-11-19 from stance-off-poses (10).json, saved in Chrome) ----
+window.BAKED_EDITS_8 = [
+  {"name":"Hangetort (right) v3","saved":"2026-11-20T04:59:19.153Z","guard":"hangetort","side":"right","addVariant":true,"pose":{"lead":"right","stance":0.49,"width":0.38,"crouch":0.15,"shift":-0.17,"turn":-109,"twist":13,"lean":12,"hilt":[-0.049,1.602,-0.232],"blade":[-1,-39.4],"elbowL":-8,"elbowR":89,"roll":90,"sideLean":-4,"footLFwd":-0.42,"footLSide":-0.45,"footRSide":-0.37,"footLTurn":79,"footRTurn":-83}},
+];
+for (const e of window.BAKED_EDITS_8) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g || !e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  if (e.addVariant) g.poses.push(e.pose);
+  else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
+}
+
+// ---- Player edits, ninth batch: Hangetort variant 3, left side (baked 2026-11-19 from stance-off-poses (11).json, saved in Chrome) ----
+window.BAKED_EDITS_9 = [
+  {"name":"Hangetort (left) v3","saved":"2026-11-20T05:06:38.740Z","guard":"hangetort","side":"left","vi":2,"pose":{"lead":"left","stance":0.49,"width":0.38,"crouch":0.15,"shift":-0.17,"turn":109,"twist":-13,"lean":12,"hilt":[-0.109,1.642,0.232],"blade":[13,-39.4],"elbowL":-56,"elbowR":-115,"roll":-90,"sideLean":4,"footRFwd":-0.42,"footLSide":-0.37,"footRSide":-0.45,"footLTurn":-83,"footRTurn":79}},
+];
+for (const e of window.BAKED_EDITS_9) {
+  window.BAKED_SAVED.add(e.name + "|" + e.saved); // pose-edits.js skips these
+  const g = window.GUARDS.find((x) => x.id === e.guard);
+  if (!g || !e.pose) continue;
+  g.poses = g.poses || [g.pose];
+  if (e.addVariant) g.poses.push(e.pose);
+  else if (e.side === "left") {
+    if (g.sides && g.sides.left) { (g.leftPoses = g.leftPoses || {})[e.vi || 0] = e.pose; if (!e.vi) g.sides.left.pose = e.pose; }
+  } else { g.poses[e.vi || 0] = e.pose; if (!e.vi) g.pose = g.poses[0]; }
+}

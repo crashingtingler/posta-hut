@@ -496,3 +496,11 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .gnav { flex: none; width: 34px; height: 64px; padding: 0; display: flex; align-items: center; justify-content: center;
   border: 1.5px solid var(--ink-2); border-radius: 2px; background: transparent; color: var(--ink); }
 .gnav:active { transform: scale(.94); }
+/* Android app build (html.app, set by tools/build-app.sh): the guard editor isn't shipped there */
+html.app .hammer { display: none; }
+/* Setup: "No timer" under the difficulty cards */
+.set.untimed { margin: 8px 0 0; padding: 8px 12px; align-items: center; cursor: pointer; }
+.set.untimed input { margin-top: 0; }
+.set.untimed b { font-size: 16px; }
+.set.untimed small { font-size: 13px; }
+#setup .setup-note#tier-note { min-height: 0; }

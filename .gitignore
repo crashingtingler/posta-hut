@@ -2,3 +2,5 @@
 review.html
 sheet.html
 serve.ps1
+# Android builds
+*.apk

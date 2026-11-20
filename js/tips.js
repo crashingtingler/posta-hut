@@ -51,7 +51,7 @@ window.Tips = (function () {
     },
   };
 
-  const native = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  const native = !!window.IS_APP || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
   const stripeReady = Object.values(STRIPE_LINKS).every(Boolean);
   // TODO(capacitor): when native, return a RevenueCat-backed store here.
   const backend = !native && stripeReady ? StripeStore : MockStore;

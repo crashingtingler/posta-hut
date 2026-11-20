@@ -1,0 +1,8 @@
+{
+  "appId": "com.postahut.app",
+  "appName": "Posta hut",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#efe2c4"
+  }
+}

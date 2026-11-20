@@ -146,6 +146,7 @@
       <button data-v="master"><span class="swords"><svg class="sw" viewBox="0 0 12 44" aria-hidden="true"><use href="#ico-sword"/></svg><svg class="sw" viewBox="0 0 12 44" aria-hidden="true"><use href="#ico-sword"/></svg><svg class="sw" viewBox="0 0 12 44" aria-hidden="true"><use href="#ico-sword"/></svg></span>Master</button>
     </div>
     <p class="setup-note" id="tier-note"></p>
+    <label class="set untimed"><input type="checkbox" id="opt-untimed"><span><b>No timer</b><small>Take as long as you like · 30% XP</small></span></label>
     <p class="fleuron" aria-hidden="true"><span class="leaf"></span></p>
     <h3 class="setup-h">Masters</h3>
     <div class="masters" id="masters" role="group" aria-label="Masters"></div>
@@ -237,7 +238,7 @@
 <script src="js/game.js"></script>
 <script>
 // Installable offline app: save the game on this device (only when served from a web address, not a local file)
-if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+if ("serviceWorker" in navigator && location.protocol.startsWith("http") && !window.IS_APP) { // the Android app ships its files already
   // when a newer version has just been saved and takes over, reload once so it shows straight away
   const hadOne = !!navigator.serviceWorker.controller; let reloaded = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadOne && !reloaded) { reloaded = true; location.reload(); } });
@@ -250,7 +251,7 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   const installed = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   let deferred = null;
-  if (installed || !location.protocol.startsWith("http")) return;
+  if (window.IS_APP || installed || !location.protocol.startsWith("http")) return;
   row.classList.remove("hidden"); // always offered in a browser tab
   const ua = navigator.userAgent;
   const steps = ios ? "In Safari, tap the Share button (the square with an arrow), then “Add to Home Screen”, then Add."

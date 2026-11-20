@@ -112,12 +112,16 @@
     $("#setup-sub").textContent = setupMode === "bout" ? "10 guards, speed and accuracy" : "3 misses and you're out · the clock shortens every 5 guards";
     $("#setup-begin").dataset.start = setupMode;
     $$("#setup .toggle button").forEach((b) => b.classList.toggle("on", b.dataset.v === settings.tier));
-    $("#tier-note").textContent = TIER_NOTES[settings.tier] || "";
+    $("#tier-note").textContent = (TIER_NOTES[settings.tier] || "").replace(/^\d+ seconds a guard/, settings.untimed ? "No timer" : "$&");
+    $("#opt-untimed").checked = !!settings.untimed;
     renderMasters();
     renderNameModes();
     $$("#quiz-modes button").forEach((b) => b.classList.toggle("on", b.dataset.v === (settings.quiz || "name")));
   }
   $$("#quiz-modes button").forEach((b) => b.addEventListener("click", () => { settings.quiz = b.dataset.v; Sfx.quill(); saveSettings(); renderSetup(); }));
+  // No timer: take as long as you like; the run earns 30% of the XP
+  $("#opt-untimed").addEventListener("change", (e) => { settings.untimed = e.target.checked; Sfx.quill(); saveSettings(); renderSetup(); });
+  const UNTIMED_XP = 0.3;
 
   // Guard names on the answer buttons: historical, modern (English / HEMA), or both. At least one stays on.
   // After a hit (and on the "Not quite" sheet) both names always show.
@@ -230,7 +234,8 @@
     run = { mode, method: settings.method, tier: settings.tier, q: 0, score: 0, combo: 0, bestCombo: 0,
             correct: 0, answered: 0, misses: 0, missed: [], fastest: null, totalTime: 0, last: null,
             masters: settings.masters.slice(), ranked: isRanked(), view: settings.view, xpShare: xpShareFor(settings.masters, settings.view),
-            quiz: settings.quiz === "find" ? "find" : "name" };
+            quiz: settings.quiz === "find" ? "find" : "name", untimed: !!settings.untimed };
+    $(".margin-timer").classList.toggle("hidden", run.untimed); // no ink stroke without a clock
     run.pool = G.filter((g) => run.masters.includes(g.master) && (run.view !== "manuscript" || hasPlate(g)));
     if (run.pool.length < 2) { run = null; return; }
     $("#stage-svg").classList.toggle("hidden", run.view === "manuscript" || run.quiz === "find");
@@ -416,6 +421,7 @@
   }
   function tickTimer() {
     cancelAnimationFrame(timerRaf);
+    if (run.untimed) return; // no timer: the clock never runs out (answers still score faster = more points)
     const step = () => {
       if (run.locked) return;
       const left = run.tMax - (performance.now() - run.t0) / 1000;
@@ -559,13 +565,14 @@
 
     // XP always counts, scaled by the share of guards played; best streaks count with any masters.
     const rec = myRecord(), rb = rankFor(rec.xp), share = run.xpShare == null ? 1 : run.xpShare;
-    const gained = Math.round(run.score * share);
+    const gained = Math.round(run.score * share * (run.untimed ? UNTIMED_XP : 1));
     rec.xp += gained;
     const newBest = run.bestCombo > rec.streak;
     if (newBest) rec.streak = run.bestCombo;
     saveRecord(rec);
     const ra = rankFor(rec.xp);
     const line = `+${gained.toLocaleString()} XP` + (share < 1 ? ` (${Math.round(share * 100)}% for ${run.masters.length} of ${M.length} masters)` : "") +
+      (run.untimed ? ` (${Math.round(UNTIMED_XP * 100)}% with no timer)` : "") +
       (ra !== rb ? ` — promoted to ${ra[1]}!` : "") + (newBest ? ` · new best streak: ${rec.streak}!` : "");
     $("#res-xp").textContent = line;
     $("#res-practice").classList.add("hidden"); // (no practice runs any more: XP is scaled instead)

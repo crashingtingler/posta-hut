@@ -1,0 +1,17 @@
+{
+  "name": "posta-hut-app",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Android build of Posta hut (Capacitor). Build with: bash tools/build-app.sh",
+  "scripts": {
+    "sync": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/core": "^8.6.2"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^4.0.0",
+    "@capacitor/cli": "^8.6.2"
+  }
+}

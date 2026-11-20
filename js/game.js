@@ -639,21 +639,25 @@
   // Tapping the coin tosses it, just for fun (same flip and sound as a tip)
   $(".coin-wrap").addEventListener("click", () => { if (tipBusy) return; const coin = $("#coin");
     Sfx.coin(); coin.classList.remove("flip"); void coin.offsetWidth; coin.classList.add("flip"); });
+  // A tip went through (here, or on Stripe and the player just came back): grant the seal and say thanks.
+  function thankTipper() {
+    store.set("patron", true);
+    if (me()) { const rec = myRecord(); rec.patron = true; saveRecord(rec); } // the patron seal shows beside this name in the Hall
+    store.set("tips", store.get("tips", 0) + 1);
+    // The half Portugalöser is tossed: flip animation + coin sound, then the thanks.
+    // The toss always plays, even with Reduced motion on: it is the one moment of thanks, and short.
+    Sfx.coin();
+    const coin = $("#coin");
+    coin.classList.remove("flip"); void coin.offsetWidth; coin.classList.add("flip");
+    setTimeout(() => renderSupport(true), 1150);
+  }
   async function buyTip(id) {
     if (tipBusy) return;
     tipBusy = true;
     $$("#tips .tip-btn").forEach((b) => (b.disabled = true));
     try {
       await Tips.purchase(id);
-      store.set("patron", true);
-      { const rec = myRecord(); rec.patron = true; saveRecord(rec); } // the patron seal shows beside this name in the Hall
-      store.set("tips", store.get("tips", 0) + 1);
-      // The half Portugalöser is tossed: flip animation + coin sound, then the thanks.
-      Sfx.coin();
-      // The toss always plays, even with Reduced motion on: it is the one moment of thanks, and short.
-      const coin = $("#coin");
-      coin.classList.remove("flip"); void coin.offsetWidth; coin.classList.add("flip");
-      setTimeout(() => renderSupport(true), 1150);
+      thankTipper();
     } catch (e) {
       $("#tip-err").textContent = e && e.message === "cancelled" ? "" : "The purchase didn't go through. You weren't charged.";
       $$("#tips .tip-btn").forEach((b) => (b.disabled = false));
@@ -661,6 +665,10 @@
       tipBusy = false;
     }
   }
+
+  // Back from the Stripe page without paying (the browser may restore this page as it was): free the buttons.
+  window.addEventListener("pageshow", (e) => { if (!e.persisted) return; tipBusy = false;
+    $$("#tips .tip-btn").forEach((b) => (b.disabled = false)); });
 
   // ---------- salle ----------
   let salleId = G[0].id;
@@ -702,7 +710,7 @@
     if (!thumbFig) thumbFig = Fencer3D.makeFigure(document.createElement("div"), "#8e3b3b", { preserve: true, size: [480, 560] });
     thumbFig.setAccent(accent(g)); thumbFig.setLook(salleLook || Looks.randomLook(g.tradition));
     const sides = sidesOf(g), n = (g.poses || [g.pose]).length;
-    box.classList.toggle("decks", n > 1);
+    box.classList.add("decks"); // every guard uses the same card size, with or without variants
     // One column per side. With several variants the side's pictures are stacked like a deck of cards:
     // swipe (or ‹ ›) brings the next variant to the top; tapping the top card opens it full screen.
     for (const side of sides) {
@@ -712,12 +720,6 @@
         thumbFig.setView(yawFor(side, p.view != null ? p.view : 25)); thumbFig.set(p);
         const label = [n > 1 ? "Variant " + (vi + 1) : "", sides.length > 1 ? side : ""].filter(Boolean).join(" · ") || g.name;
         cards.push({ src: thumbFig.canvas.toDataURL("image/png"), p, label });
-      }
-      if (n === 1) {
-        const c = cards[0], b = document.createElement("button"); b.className = "vthumb"; b.setAttribute("aria-label", c.label + " — tap to zoom");
-        b.innerHTML = `<img alt="" src="${c.src}"><span>${esc(c.label)}</span>`;
-        b.addEventListener("click", () => openZoom(g, side, c.p, g.name + (c.label !== g.name ? " — " + c.label : "")));
-        box.appendChild(b); continue;
       }
       box.appendChild(makeDeck(g, side, cards));
     }
@@ -742,10 +744,11 @@
     deck.addEventListener("pointerdown", (e) => { sx = e.clientX; moved = false; swiped = false; });
     deck.addEventListener("pointermove", (e) => { if (sx != null && Math.abs(e.clientX - sx) > 12) moved = true; });
     deck.addEventListener("pointerup", (e) => { if (sx == null) return; const dx = e.clientX - sx; sx = null;
-      if (moved && Math.abs(dx) > 30) { swiped = true; go(dx < 0 ? 1 : -1); } });
+      if (moved && Math.abs(dx) > 30 && els.length > 1) { swiped = true; go(dx < 0 ? 1 : -1); } });
     // a click (tap, mouse or keyboard) on the deck opens its top card — unless it was the end of a swipe
-    deck.addEventListener("click", () => { if (swiped) { swiped = false; return; } const c = cards[top]; openZoom(g, side, c.p, g.name + " — " + c.label); });
+    deck.addEventListener("click", () => { if (swiped) { swiped = false; return; } const c = cards[top]; openZoom(g, side, c.p, g.name + (c.label !== g.name ? " — " + c.label : "")); });
     lay(); nav.querySelector(".dpos").textContent = `1 / ${els.length}`;
+    if (els.length < 2) nav.style.visibility = "hidden"; // one card: same size and place as a deck, no variant controls
     return wrap;
   }
   // Full-screen view of one variant: a live figure the player can drag to rotate; X (or Esc) closes it.
@@ -778,6 +781,7 @@
     const t = [...b.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim()); if (!t) return;
     const s = document.createElement("span"); s.className = "lbl"; s.textContent = t.textContent.trim(); b.replaceChild(s, t); });
   if (me()) show("title"); else askName("title"); // first launch: ask the player's name
+  if (Tips.returned()) { show("support"); thankTipper(); } // back from paying a tip on Stripe
   window.__stanceOff = { show, startRun, answer, finish, distractors, get run() { return run; } }; // debug hook
   // Screenshot hook: index.html#demo=play|wrong|result|salle|hall
   const demo = (location.hash.match(/demo=(\w+)/) || [])[1];

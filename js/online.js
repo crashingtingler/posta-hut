@@ -65,7 +65,7 @@
     const r = await call("/rest/v1/hall?on_conflict=id", { method: "POST", body: row, token: s.access, prefer: "resolution=merge-duplicates,return=minimal" });
     const msg = r.data && (r.data.message || r.data.msg || "");
     const status = r.ok ? "ok" : r.status === 0 ? "offline"
-      : /name not allowed/.test(msg) ? "name" : /too fast/.test(msg) ? "retry" : "error";
+      : /banned/.test(msg) ? "banned" : /name not allowed/.test(msg) ? "name" : /too fast/.test(msg) ? "retry" : "error";
     setSession(name, { status });
     return status === "offline" ? "retry" : status;
   }

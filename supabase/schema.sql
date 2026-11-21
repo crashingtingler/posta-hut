@@ -48,9 +48,29 @@ begin
   return true;
 end $$;
 
--- ---------- checks on every write: name filter, and XP that can't jump or climb too fast ----------
-create or replace function public.hall_guard() returns trigger language plpgsql as $$
+-- ---------- moderation: banned players, and names you've set yourself ----------
+-- No policies: players can't read or write this table. Use the admin commands at the end of this file.
+create table if not exists public.bans (
+  id         uuid primary key,               -- the player's id (hall.id)
+  name       text,                           -- their name when banned, for your reference
+  reason     text,
+  created_at timestamptz not null default now()
+);
+alter table public.bans enable row level security;
+-- a name you set (rename_player) stays, whatever the player's app sends afterwards
+alter table public.hall add column if not exists forced_name text;
+
+-- ---------- checks on every write: bans, name filter, and XP that can't jump or climb too fast ----------
+-- Only players' writes (through the app) are checked; your own edits in the dashboard or SQL editor go straight through.
+create or replace function public.hall_guard() returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  jwt_role text := nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role';
 begin
+  if coalesce(jwt_role, '') not in ('anon', 'authenticated') then new.updated_at := now(); return new; end if; -- you, the admin
+  if exists (select 1 from public.bans b where b.id = new.id) then raise exception 'banned' using errcode = '42501'; end if;
+  if tg_op = 'INSERT' then new.forced_name := null;
+  else new.forced_name := old.forced_name; if old.forced_name is not null then new.name := old.forced_name; end if;
+  end if;
   if not public.name_ok(new.name) then raise exception 'name not allowed' using errcode = '22023'; end if;
   new.updated_at := now();
   if tg_op = 'INSERT' then
@@ -101,3 +121,41 @@ grant insert on public.reports to authenticated;
 revoke all on public.reports from anon;
 -- the project's defaults also hand these to the API roles; none are needed, and TRUNCATE would ignore row security
 revoke truncate, references, trigger on public.hall, public.reports from anon, authenticated;
+
+-- ---------- admin commands (run them in the SQL Editor; players can't call them) ----------
+-- Find a player:   select id, name, xp, streak, updated_at from public.hall where name ilike '%cass%' order by xp desc;
+-- Then use their id (the long uuid) below. See supabase/MODERATION.md.
+
+-- ban: removes them from the Hall and refuses anything their app sends from now on
+create or replace function public.ban_player(player uuid, why text default null) returns text language plpgsql security definer set search_path = public as $$
+declare n text;
+begin
+  select name into n from public.hall where id = player;
+  insert into public.bans (id, name, reason) values (player, n, why) on conflict (id) do update set reason = excluded.reason;
+  delete from public.hall where id = player;
+  return 'banned ' || coalesce(n, player::text);
+end $$;
+
+create or replace function public.unban_player(player uuid) returns text language sql security definer set search_path = public as $$
+  delete from public.bans where id = player returning 'unbanned ' || coalesce(name, id::text);
+$$;
+
+-- rename: sets their name and keeps it, whatever their app sends later
+create or replace function public.rename_player(player uuid, new_name text) returns text language sql security definer set search_path = public as $$
+  update public.hall set name = new_name, forced_name = new_name where id = player returning 'renamed to ' || name;
+$$;
+
+-- set score: changes their XP (and best streak, if given). A cheater's app can still climb back from here; ban cheaters.
+create or replace function public.set_score(player uuid, new_xp integer, new_streak integer default null) returns text language sql security definer set search_path = public as $$
+  update public.hall set xp = new_xp, streak = coalesce(new_streak, streak), xp_at = now() where id = player
+  returning name || ': ' || xp || ' XP, best streak ' || streak;
+$$;
+
+revoke all on function public.ban_player(uuid, text), public.unban_player(uuid), public.rename_player(uuid, text), public.set_score(uuid, integer, integer) from public, anon, authenticated;
+revoke all on public.bans from anon, authenticated;
+
+-- ---------- the admin app (secret key = service_role): read everything and run the admin commands ----------
+-- (spelled out because this project doesn't hand new tables to the API roles automatically)
+grant usage on schema public to service_role;
+grant select, insert, update, delete on public.hall, public.reports, public.bans to service_role;
+grant execute on function public.ban_player(uuid, text), public.unban_player(uuid), public.rename_player(uuid, text), public.set_score(uuid, integer, integer) to service_role;

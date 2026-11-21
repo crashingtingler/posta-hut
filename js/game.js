@@ -623,6 +623,7 @@
     const st = Online.status(me()), out = Online.optedOut(me());
     $("#hall-online").textContent = !Online.enabled ? "" : !online ? "" :
       out ? "The world's best fencers. You've left the online Hall (Settings)." :
+      st === "banned" ? "The world's best fencers. You've been removed from the online Hall." :
       st === "name" ? "The world's best fencers. Your name wasn't accepted online: change it in Settings." : "The world's best fencers.";
     $("#hall-body").innerHTML = rows.length
       ? rows.map((r, i) => `<tr class="hall-row ${i === 0 && r.v > 0 ? "gold" : ""} ${r.mine ? "me" : ""}" data-i="${i}"><td>${i + 1}</td>` +

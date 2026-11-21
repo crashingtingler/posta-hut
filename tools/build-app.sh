@@ -2,6 +2,7 @@
 # Builds the Android app's copy of the game into app/www and syncs it into the Android project.
 #   bash tools/build-app.sh          -> refresh app/www + cap sync
 #   bash tools/build-app.sh apk      -> also build a debug APK and copy it to Downloads/posta-hut-debug.apk
+#   bash tools/build-app.sh aab      -> also build the signed release bundle for Google Play -> Downloads/posta-hut-release.aab
 # Ships the same files as the website (the list in sw.js), minus the guard editor and the offline helper.
 cd "$(dirname "$0")/.." || exit 1
 # tools this PC uses (installed 2026-11-19): Node.js, Temurin JDK 21, Android SDK in %LOCALAPPDATA%/Android/Sdk
@@ -19,4 +20,8 @@ cd app || exit 1
 npx cap sync android || exit 1
 if [ "$1" = "apk" ]; then
   cd android && ./gradlew assembleDebug -q && cp app/build/outputs/apk/debug/app-debug.apk ~/Downloads/posta-hut-debug.apk && echo "APK: Downloads/posta-hut-debug.apk"
+fi
+if [ "$1" = "aab" ]; then
+  # signed with the upload key in Documents/posta-hut-keys (see app/android/app/build.gradle); bump versionCode there for each upload
+  cd android && ./gradlew bundleRelease -q && cp app/build/outputs/bundle/release/app-release.aab ~/Downloads/posta-hut-release.aab && echo "AAB: Downloads/posta-hut-release.aab"
 fi

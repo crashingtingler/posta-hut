@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Posta hut · Delete your data</title>
+<link rel="stylesheet" href="css/fonts.css">
+<style>
+  :root { --parch: #efe2c4; --ink: #1d1712; --ink-2: #5a4c3c; --red: #a3261d; }
+  body { margin: 0; background: var(--parch); color: var(--ink); font: 17px/1.55 "Alegreya", Georgia, serif; }
+  main { max-width: 680px; margin: 0 auto; padding: 28px 16px 48px; }
+  h1 { font-weight: 700; font-size: 30px; margin: 0 0 12px; }
+  h2 { font-size: 20px; margin: 26px 0 6px; }
+  a { color: var(--red); }
+  label { display: block; font-weight: 700; margin: 12px 0 0; }
+  label small { font-weight: 400; font-style: italic; color: var(--ink-2); }
+  input, textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; padding: 8px; font: 16px "Alegreya", Georgia, serif;
+    background: #fbf5e6; border: 1px solid var(--ink-2); border-radius: 4px; }
+  button { margin-top: 16px; padding: 10px 22px; font: 18px "Alegreya", Georgia, serif; background: #fbf1d6; border: 2px solid var(--ink); border-radius: 6px; cursor: pointer; }
+  .trap { position: absolute; left: -9999px; }
+</style>
+</head>
+<body>
+<main>
+<h1>Delete your Posta hut data</h1>
+
+<h2>The quick way: in the game</h2>
+<p>Open <b>Settings</b> and untick <b>Online Hall of Masters</b>. Your entry in the online Hall (name, XP, best
+streak and fencer) is deleted straight away. Everything else is only on your device and goes when you uninstall.</p>
+
+<h2>If you no longer have the game</h2>
+<p>Ask us here and we'll delete your online entry within 30 days. Several players can share a name, so tell us
+anything that helps us find yours.</p>
+<form action="https://formspree.io/f/xljbwrjj" method="POST">
+  <input type="hidden" name="_subject" value="Posta hut: data deletion request">
+  <input type="hidden" name="about" value="deletion request">
+  <label>Your name in the Hall of Masters<input name="hall_name" maxlength="40" required></label>
+  <label>Anything that helps find it <small>(roughly how much XP, your fencer's garb, when you last played)</small><textarea name="details" rows="3" maxlength="1000"></textarea></label>
+  <label>Email for a reply <small>(optional)</small><input name="email" type="email" maxlength="120"></label>
+  <input type="text" name="_gotcha" class="trap" tabindex="-1" autocomplete="off">
+  <button type="submit">Send request</button>
+</form>
+
+<h2>What is deleted</h2>
+<p>Your online Hall entry and any reports linked to it. We keep nothing else about you. See the
+<a href="privacy.html">privacy policy</a>.</p>
+</main>
+</body>
+</html>

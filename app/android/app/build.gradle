@@ -16,8 +16,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Google Play upload key: kept outside the project (Documents/posta-hut-keys), never committed.
+    // Override the location with -PpostaKeys=<path to keystore.properties>.
+    def keysFile = file(project.findProperty("postaKeys") ?: "${System.getProperty('user.home')}/Documents/posta-hut-keys/keystore.properties")
+    signingConfigs {
+        if (keysFile.exists()) {
+            def keys = new Properties(); keysFile.withInputStream { keys.load(it) }
+            upload {
+                storeFile file(keys.storeFile); storePassword keys.storePassword
+                keyAlias keys.keyAlias; keyPassword keys.keyPassword
+            }
+        }
+    }
     buildTypes {
         release {
+            if (keysFile.exists()) signingConfig signingConfigs.upload
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

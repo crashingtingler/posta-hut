@@ -502,6 +502,8 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .gnav:active { transform: scale(.94); }
 /* Android app build (html.app, set by tools/build-app.sh): the guard editor isn't shipped there */
 html.app .hammer { display: none; }
+/* ...and no tip jar until Google Play Billing is wired up (a store app may not take tips through an outside page) */
+html.app .support-btn { display: none; }
 /* Setup: "No timer" under the difficulty cards */
 .set.untimed { margin: 8px 0 0; padding: 8px 12px; align-items: center; cursor: pointer; }
 .set.untimed input { margin-top: 0; }

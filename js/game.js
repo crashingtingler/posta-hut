@@ -607,7 +607,7 @@
     const all = players();
     drawHall(Object.entries(all).map(([name, r]) => ({ name, rec: r, v: r[key] || 0, patron: r.patron, mine: name === me() }))
       .filter((r) => r.v > 0 || r.mine).sort((a, b) => b.v - a.v || a.name.localeCompare(b.name)).slice(0, 20), null);
-    if (!Online.enabled) return;
+    if (!Online.enabled || /demo=/.test(location.hash)) return; // (screenshot demos keep their sample players)
     const asked = hallTab;
     $("#hall-online").textContent = "Fetching the Hall…";
     Online.hall(key).then((list) => {

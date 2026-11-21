@@ -71,7 +71,9 @@
   // ---------- screens ----------
   let settingsFrom = "title";
   function show(id) {
-    if (id === "settings") { const cur = document.querySelector(".screen.active"); if (cur && cur.id !== "settings") settingsFrom = cur.id; }
+    // Settings' Back goes to where Settings was opened from; coming back from the name screen (Change name) doesn't
+    // count, or Back would loop Settings -> name -> Settings
+    if (id === "settings") { const cur = document.querySelector(".screen.active"); if (cur && cur.id !== "settings" && cur.id !== "name-screen") settingsFrom = cur.id; }
     $("#vzoom").classList.add("hidden");
     // Page turn: deeper screens turn forward (from the right), going back towards the menu turns back.
     const prev = document.querySelector(".screen.active"), depth = { title: 0, "name-screen": 0, play: 2, result: 3 };

@@ -138,6 +138,22 @@
     else { x.fillStyle = b; x.beginPath(); x.arc(8, 8, 2.2, 0, Math.PI * 2); x.fill(); }
     const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.colorSpace = T.SRGBColorSpace; return t;
   }
+  // a fencing mask's steel mesh: a fine dark grid over a lighter ground, so it reads as wire at a glance
+  function meshTexture() {
+    const c = document.createElement("canvas"); c.width = c.height = 16;
+    const x = c.getContext("2d"); x.fillStyle = "#6a6d70"; x.fillRect(0, 0, 16, 16);
+    x.fillStyle = "#141414"; x.fillRect(0, 0, 16, 5); x.fillRect(0, 0, 5, 16);
+    const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(54, 27); t.colorSpace = T.SRGBColorSpace; return t;
+  }
+  // brown wood (the ogre club, haft and head alike): grain streaks running along the length, a few dark knots
+  function woodTexture() {
+    const c = document.createElement("canvas"); c.width = c.height = 32;
+    const x = c.getContext("2d"); x.fillStyle = "#7a5230"; x.fillRect(0, 0, 32, 32);
+    x.fillStyle = "#5e3d22"; for (const [px, w] of [[2, 2], [9, 1], [15, 3], [23, 1], [28, 2]]) x.fillRect(px, 0, w, 32);
+    x.fillStyle = "#8e6238"; for (const [px, w] of [[6, 2], [19, 2], [26, 1]]) x.fillRect(px, 0, w, 32);
+    x.fillStyle = "#3a2618"; for (const [px, py] of [[11, 7], [24, 21]]) { x.beginPath(); x.ellipse(px, py, 2, 3, 0, 0, Math.PI * 2); x.fill(); }
+    const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(2, 6); t.colorSpace = T.SRGBColorSpace; return t;
+  }
   function groundTexture() {
     const c = document.createElement("canvas"); c.width = c.height = 256;
     const x = c.getContext("2d");
@@ -270,7 +286,7 @@
     // materials that change with the look
     const M = {
       jacket: toon(0xf1e9da), jacketFar: toon(0xd9cfbd), armL: toon(0xf1e9da), armR: toon(0xf1e9da), thighL: toon(0xf1e9da), thighR: toon(0xf1e9da),
-      shin: toon(0xf1e9da), shoe: toon(0x1d1712), skin: toon(0xf0d9b8), hair: toon(0x3b2a1d),
+      shin: toon(0xf1e9da), shinR: toon(0xf1e9da), glove: toon(0x1d1712), shoe: toon(0x1d1712), skin: toon(0xf0d9b8), hair: toon(0x3b2a1d), // shinR: the right sock (odd socks); glove: gloved hands
       belt: toon(accent || 0x8e3b3b), white: toon(0xf6f1e6), gold: toon(0xd4a62a), ink: toon(0x1d1712),
       steel: toon(0xd9d6cf), iron: toon(0x5e5a52), grip: toon(0x5a3a22), cane: toon(0xc9a86a),
       chap: toon(0x7e2620), // the chaperone's cloth
@@ -285,9 +301,9 @@
     const add = (k, geo, mat, ol) => (P[k] = part(scene, geo, mat, ol));
     // legs
     for (const s of ["L", "R"]) {
-      add("thigh" + s, GEO.seg, s === "L" ? M.thighL : M.thighR); add("knee" + s, GEO.ball, M.shin);
+      add("thigh" + s, GEO.seg, s === "L" ? M.thighL : M.thighR); add("knee" + s, GEO.ball, s === "L" ? M.shin : M.shinR);
       add("puff" + s, GEO.ball, s === "L" ? M.thighL : M.thighR);
-      add("shin" + s, GEO.seg, M.shin); add("foot" + s, GEO.ball, M.shoe);
+      add("shin" + s, GEO.seg, s === "L" ? M.shin : M.shinR); add("foot" + s, GEO.ball, M.shoe);
     }
     add("hips", GEO.hips, M.jacket); add("skirt", GEO.skirt, M.jacket); add("belt", GEO.torus, M.belt, OUTLINE_THIN);
     add("chest", GEO.chest, M.jacket);
@@ -340,7 +356,7 @@
       cxHookA: [GEO.seg, M.hilt], cxHookB: [GEO.seg, M.hilt], cxA2: [GEO.seg, M.hilt], cxB2: [GEO.seg, M.hilt], cxA3: [GEO.seg, M.hilt], cxB3: [GEO.seg, M.hilt], cxRingP: [GEO.torus, M.hilt], cxPyr: [GEO.pyr, M.hilt], cxTulipA: [GEO.ball, M.blade], cxTulipB: [GEO.ball, M.blade],
       th0: [GEO.cone, M.ink], th1: [GEO.cone, M.ink], th2: [GEO.cone, M.ink], th3: [GEO.cone, M.ink], th4: [GEO.cone, M.ink], th5: [GEO.cone, M.ink],
       bmA: [GEO.ball, M.blade], bmB: [GEO.ball, M.blade], bmE: [GEO.ball, M.blade],
-      th6: [GEO.cone, M.ink], th7: [GEO.cone, M.ink], th8: [GEO.cone, M.ink], th9: [GEO.cone, M.ink], cxRic: [GEO.seg, M.grip], mcBall: [GEO.ball, M.blade], mcTop: [GEO.cone, M.blade],
+      th6: [GEO.cone, M.ink], th7: [GEO.cone, M.ink], th8: [GEO.cone, M.ink], th9: [GEO.cone, M.ink], cxRic: [GEO.seg, M.grip], cxNagel: [GEO.seg, M.hilt], mcB0: [GEO.seg, M.grip], mcB1: [GEO.seg, M.grip], mcB2: [GEO.seg, M.grip], mcB3: [GEO.seg, M.grip], mcBall: [GEO.ball, M.blade], mcTop: [GEO.cone, M.blade],
       mcF0: [GEO.ball, M.blade], mcF1: [GEO.ball, M.blade], mcF2: [GEO.ball, M.blade], mcF3: [GEO.ball, M.blade], mcF4: [GEO.ball, M.blade], mcF5: [GEO.ball, M.blade], mcF6: [GEO.ball, M.blade], mcF7: [GEO.ball, M.blade],
       mcS0: [GEO.cone, M.blade], mcS1: [GEO.cone, M.blade], mcS2: [GEO.cone, M.blade], mcS3: [GEO.cone, M.blade], mcS4: [GEO.cone, M.blade], mcS5: [GEO.cone, M.blade], mcS6: [GEO.cone, M.blade], mcS7: [GEO.cone, M.blade],
       axHead: [GEO.ball, M.blade], axBeard: [GEO.ball, M.blade], axBack: [GEO.ball, M.blade], axFan: [GEO.cone, M.blade], axFan2: [GEO.cone, M.blade], axBit2: [GEO.ball, M.blade], axSpike: [GEO.cone, M.blade],
@@ -355,6 +371,8 @@
     // French hood: a row of gold billiment beads and a white pleated crepine framing the face, and a hanging black veil
     for (let i = 0; i < 9; i++) { HX["frB" + i] = [GEO.ball, M.hat2]; HX["frC" + i] = [GEO.ball, M.plume]; }
     HX.hxVeil = [GEO.ball, M.hat];
+    // ear headbands: cat ears (flat cones) and bunny ears (long ovals), each with an inner ear in the trim colour
+    for (const s of ["L", "R"]) { HX["earC" + s] = [GEO.cone, M.hat]; HX["earCi" + s] = [GEO.cone, M.hat2]; HX["earB" + s] = [GEO.ball, M.hat]; HX["earBi" + s] = [GEO.ball, M.hat2]; }
     for (const [k, [g, m]] of Object.entries(HX)) { add(k, g, m, k.startsWith("fr") ? null : OUTLINE_THIN); P[k].visible = false; }
     const HAT_PARTS = {
       beret: ["hxBrim", "hxBall", "hxFeather1", "hxFeather2"], kettle: ["hxDome", "hxFrust"], morion: ["hxDome", "hxBall", "hxFrustUp"],
@@ -362,6 +380,7 @@
       busby: ["hxCyl", "hxTail", "hxFeather1"], jingasa: ["hxCone", "hxBall2"], turban: ["hxTorus", "hxTorus2", "hxBall2"], coif: ["hxBall"],
       fez: ["hxFrust", "hxBrim", "hxTail"], kufi: ["hxDome"], tagelmust: ["hxTorus", "hxTorus2", "hxBall", "hxBall2"], salakot: ["hxCone", "hxBall2"],
       hennin: ["hxCone", "hxFeather1", "hxBand"],
+      catears: ["hxBall", "earCL", "earCR", "earCiL", "earCiR"], bunnyears: ["hxBall", "earBL", "earBR", "earBiL", "earBiR"],
       frogrivets: [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => "frB" + i),
       imperial: ["hxCyl", "hxBall2", "hxTorus", "hxTorus2", "hxBall", "hxFeather1", "frC0", ...[0, 1, 2, 3, 4, 5, 6, 7].flatMap((i) => ["frB" + i, "frC" + (i + 1)])], frenchhood: ["hxBall", "hxVeil", ...[0, 1, 2, 3, 4, 5, 6, 7, 8].flatMap((i) => ["frB" + i, "frC" + i])], veil: ["hxBall", "hxBall2"],
     };
@@ -460,7 +479,7 @@
         if (meyer) M[k].map = stripes(lk.thigh, lk.jacket);
         M[k].needsUpdate = true;
       }
-      M.shin.color.set(lk.shin); M.shoe.color.set(lk.shoe || lk.shin); M.hair.color.set(lk.hair);
+      M.shin.color.set(lk.shinL || lk.shin); M.shinR.color.set(lk.shinR || lk.shin); M.shoe.color.set(lk.shoe || lk.shin); M.hair.color.set(lk.hair);
       P.puffL.visible = P.puffR.visible = lk.braies || (lk.puffs != null ? !!lk.puffs : meyer || lk.style === "fabris"); // Meyer's pluderhosen; Fabris-era Venetian breeches
       P.beard.visible = lk.beard > 0; P.ruff.visible = !!lk.ruff;
       P.mustL.visible = P.mustR.visible = !!lk.mustache;
@@ -498,11 +517,16 @@
       if (M.blade.map) { M.blade.map.dispose(); M.blade.map = null; }
       if (spec && spec.twistBlade && !spec.twist) { const bc = new T.Color(spec.bladeColor || 0xd9d6cf), dk = bc.clone().lerp(new T.Color(INK), 0.5);
         M.blade.map = twisted("#" + bc.getHexString(), "#" + dk.getHexString()); M.blade.map.repeat.set(1, 6); M.blade.color.set(0xffffff); }
+      // a wooden head (the ogre club): wood grain like the haft
+      if (spec && spec.woodTex) { M.blade.map = woodTexture(); M.blade.map.repeat.set(3, 2); M.blade.color.set(0xffffff); } // the ogre club's head, same wood as the haft
       M.blade.needsUpdate = true;
       if (spec && spec.writhen) { const hc = new T.Color(spec.hiltColor || 0x5e5a52), lt = hc.clone().lerp(new T.Color(0xffffff), 0.45), dk = hc.clone().lerp(new T.Color(INK), 0.75);
         M.hilt.map = twisted("#" + lt.getHexString(), "#" + dk.getHexString()); M.hilt.color.set(0xffffff); }
       M.hilt.needsUpdate = true;
       M.grip.color.set((spec && spec.gripColor) || 0x5a3a22);
+      if (M.grip.map) { M.grip.map.dispose(); M.grip.map = null; }
+      if (spec && spec.woodTex) { M.grip.map = woodTexture(); M.grip.color.set(0xffffff); }
+      M.grip.needsUpdate = true;
       fig.set(fig.pose);
     };
     // the camera can be told to frame only the head (Armoury hat pictures); null = the whole guard
@@ -534,6 +558,7 @@
     for (const k of ["hmSlit", "hmSlit2", "hmEyeL", "hmEyeR", "hmMouth"]) kadd(k, GEO.ball, M.ink, null);
     for (let i = 0; i < 6; i++) kadd("hmDot" + i, GEO.ball, M.ink, null); // breaths (air holes) and rivets
     kadd("hmBand", GEO.ball, M.hat2); kadd("hmHornL2", GEO.torus, M.hat); kadd("hmHornR2", GEO.torus, M.hat);
+    M.mesh = toon(0xffffff, { map: meshTexture() }); kadd("hmMesh", GEO.ball, M.mesh); // a fencing mask's wire face
     const HELM_PARTS = {
       sallet: ["hmShell", "hmTail", "hmSlit", "hmVisor", "hmComb", "hmDot0", "hmDot1", "hmNeck"],
       armet: ["hmShell", "hmSnout", "hmVisor", "hmSlit", "hmRondel", "hmComb", "hmDot0", "hmDot1", "hmDot2", "hmDot3", "hmNeck"],
@@ -548,6 +573,9 @@
       armetwrap: ["hmShell", "hmSnout", "hmVisor", "hmSlit", "hmRondel", "hmComb", "hmBand", "hmNeck", "hmDot0", "hmDot1", "hmDot2", "hmDot3"],
       bigfoot: ["hmShell", "hmFace", "hmNose", "hmBrowL", "hmBrowR", "hmEyeL", "hmEyeR", "hmMouth", "hmNeck"],
       oni: ["hmDome", "hmNeck", "hmFace", "hmKuwaL", "hmKuwaR", "hmEyeL", "hmEyeR", "hmMouth", "hmBrowL", "hmBrowR"],
+      // modern HEMA masks: wire mesh, a padded rim, a bib at the throat; the plain one has a back tongue, the other a padded overlay
+      fencing: ["hmMesh", "hmBand", "hmVisor", "hmTail"],
+      fencingoverlay: ["hmMesh", "hmShell", "hmBand", "hmCross", "hmVisor", "hmTail"],
     };
     // plate armour detail (couters and poleyns carry a fan-shaped wing on the outside of the joint)
     kadd("arGorget", GEO.torus, M.armour); kadd("arRidge", GEO.ball, M.armour);
@@ -573,12 +601,14 @@
       for (const k of Object.keys(KIT)) if (!BK_EXTRA.includes(k)) P[k].visible = false;
       M.skin.color.set(lk.skin || 0xf0d9b8);
       M.beard.color.set(lk.beardColor || lk.hair || "#3b2a1d");
-      const helm = HELM_PARTS[lk.helm], hatOn = !!(lk.hat || lk.hatType || lk.chaperone || lk.cap || lk.crown || helm), hs = lk.hairStyle || "short";
+      const band = lk.hatType === "catears" || lk.hatType === "bunnyears"; // an ear headband sits over the hair, it doesn't cover it
+      const helm = HELM_PARTS[lk.helm], hatOn = !!((lk.hatType && !band) || lk.hat || lk.chaperone || lk.cap || lk.crown || helm), hs = lk.hairStyle || "short";
       // hair
-      P.hair.visible = !helm && hs !== "bald" && !(hs === "afro" && !hatOn);
+      // an open-backed fencing mask (lk.mask) leaves the hair showing behind the mesh
+      P.hair.visible = (!helm || lk.mask) && hs !== "bald" && !(hs === "afro" && !hatOn);
       if (lk.hatType === "veil") { P.hair.visible = false; P.wigL.visible = P.wigR.visible = P.wigB.visible = false; } // a wimple and veil cover the hair
       if (helm) { P.wigL.visible = P.wigR.visible = P.wigB.visible = false; P.tonsure.visible = false; }
-      if (!helm) {
+      if (!helm || lk.mask) {
         P.hrBun.visible = hs === "bun" && !hatOn; P.hrTop.visible = hs === "topknot" && !hatOn; P.hrAfro.visible = hs === "afro" && !hatOn;
         const veiled = lk.hatType === "veil";
         P.hrTail.visible = hs === "ponytail" && !veiled; P.hrPlaitL.visible = P.hrPlaitR.visible = hs === "braids" && !veiled;
@@ -588,7 +618,7 @@
       const face = !lk.faceHidden;
       P.nose.visible = P.eyeL.visible = P.eyeR.visible = face;
       // inside a closed helm the head and neck are drawn in shadow, so no skin shows through the sights and gaps
-      setFill(P.head, face ? M.skin : M.ink); setFill(P.neck, face ? M.skin : M.ink);
+      setFill(P.head, face || lk.mask ? M.skin : M.ink); setFill(P.neck, face || lk.mask ? M.skin : M.ink);
       if (!face) { P.beard.visible = P.mustL.visible = P.mustR.visible = false; }
       if (face) {
         P.fhGoatee.visible = !!lk.goatee; P.fhChopL.visible = P.fhChopR.visible = !!lk.chops;
@@ -603,10 +633,11 @@
         else if (ew === "patch") { P.patch.visible = P.patchStrap.visible = true; }
         setFill(P.glRimL, ew === "pincenez" ? M.gold : M.ink); setFill(P.glRimR, ew === "pincenez" || ew === "monocle" ? M.gold : M.ink);
       }
-      P.bustL.visible = P.bustR.visible = !!lk.fem && !lk.noBust; // no shaped breastplates: armour over the chest is plain
+      P.bustL.visible = P.bustR.visible = false; // the slender build is narrower chest and wider hips only: never a bust
       // a bare-chested slender fencer wears a linen breast band (after the 1400s Lengberg Castle finds)
-      P.breastBand.visible = !!(lk.fem && lk.breastband); setFill(P.bustL, lk.breastband ? M.braies : M.jacket); setFill(P.bustR, lk.breastband ? M.braies : M.jacket);
+      P.breastBand.visible = false; setFill(P.bustL, lk.breastband ? M.braies : M.jacket); setFill(P.bustR, lk.breastband ? M.braies : M.jacket);
       if (helm) for (const k of helm) P[k].visible = true;
+      if (lk.gloves) M.glove.color.set(lk.gloves);
       setFill(P.hmFace, lk.helm === "oni" || lk.helm === "bigfoot" ? M.hat2 : M.hat); // a steel face plate, except the oni's red lacquer mask and Bigfoot's leathery face
       setFill(P.hmNose, lk.helm === "bigfoot" ? M.hat2 : M.hat);
       // plate armour detail
@@ -619,7 +650,7 @@
         P["arCouter" + s].visible = !!ap.couter; P["arWing" + s].visible = ap.couter > 0.01;
         P["arPoleyn" + s].visible = !!ap.poleyn; P["arPWing" + s].visible = ap.poleyn > 0.01;
         P["arCuff" + s].visible = !!ap.cuffs; P["arTasset" + s].visible = !!ap.tassets;
-        setFill(P["hand" + s], ap.cuffs || ap.fur ? M.armour : M.skin);
+        setFill(P["hand" + s], ap.cuffs || ap.fur ? M.armour : lk.gloves ? M.glove : M.skin);
       }
       // belt / sash
       const bt = lk.beltType;
@@ -772,6 +803,19 @@
           ball(P.hmSlit, at(0.106, -0.035), 0.012, 0.055, 0.024, hq); ball(P.hmSlit2, at(0.1, 0.03), 0.012, 0.022, 0.058, hq);
           dot(0, at(0.04, 0.0, -0.11)); dot(1, at(0.04, 0.0, 0.11));
         }
+        else if (hm === "fencing" || hm === "fencingoverlay") { // modern HEMA mask: a domed wire mesh over the face,
+          // a padded rim where it meets the head, a padded bib hanging over the throat
+          ball(P.hmMesh, at(0.03, 0.005), 0.1, 0.134, 0.118, hq);
+          ball(P.hmVisor, at(0.05, -0.14), 0.062, 0.06, 0.104, tilt(-0.35));
+          if (hm === "fencing") { // plain: a rim round the mesh and a stiff padded tongue strapped over the back of the head
+            ball(P.hmBand, at(0.0, 0.004), 0.012, 0.136, 0.122, hq);
+            ball(P.hmTail, at(-0.13, 0.01), 0.024, 0.085, 0.066, tilt(0.15));
+          } else { // an overlay: a padded cover over the crown, sides and back, a coloured trim round the face and a stripe over the top
+            ball(P.hmShell, at(-0.03, 0.02), 0.112, 0.138, 0.126, hq);
+            ball(P.hmBand, at(0.006, 0.012), 0.014, 0.142, 0.13, hq);
+            ball(P.hmCross, at(-0.03, 0.02), 0.115, 0.141, 0.016, hq);
+            ball(P.hmTail, at(-0.128, 0.0), 0.03, 0.085, 0.08, hq); // the thick pad at the back of the head
+          } }
         else if (hm === "burgonet") { dome(); ball(P.hmComb, at(-0.01, 0.13), 0.1, 0.06, 0.008, hq); ball(P.hmPeak, at(0.1, 0.045), 0.06, 0.008, 0.1, hq);
           for (const [k, sg] of [["hmCheekL", -1], ["hmCheekR", 1]]) ball(P[k], at(0.03, -0.04, sg * 0.1), 0.06, 0.075, 0.012, hq);
           ball(P.hmTail, at(-0.1, 0), 0.06, 0.045, 0.11, hq); }
@@ -837,22 +881,22 @@
       // belt / sash
       const bt = lk.beltType;
       if (bt) {
-        if (P.buckle.visible) ball(P.buckle, s.waist.clone().addScaledVector(s.hipFwd, 0.13), 0.008, 0.024, 0.03, qHip);
+        if (P.buckle.visible) ball(P.buckle, s.waist.clone().addScaledVector(s.hipFwd, 0.152 * (look.bulk || 1)), 0.009, 0.026, 0.032, qHip);
         if (bt === "sash" || bt === "rope") {
-          const kn = s.waist.clone().addScaledVector(s.hipRight, bt === "rope" ? 0 : -0.1).addScaledVector(s.hipFwd, bt === "rope" ? 0.13 : 0.09);
+          const kn = s.waist.clone().addScaledVector(s.hipRight, bt === "rope" ? 0 : -0.12).addScaledVector(s.hipFwd, bt === "rope" ? 0.17 : 0.13);
           const r = bt === "rope" ? 0.012 : 0.03;
           ball(P.beltKnot, kn, r, r * 1.2, r, qHip);
           seg(P.beltTail1, kn, kn.clone().addScaledVector(UP, bt === "rope" ? -0.32 : -0.22).addScaledVector(s.hipFwd, 0.02), bt === "rope" ? 0.007 : 0.018);
           seg(P.beltTail2, kn, kn.clone().addScaledVector(UP, bt === "rope" ? -0.26 : -0.18).addScaledVector(s.hipRight, -0.04), bt === "rope" ? 0.007 : 0.016);
         }
-        if (bt === "obi") ball(P.beltKnot, s.waist.clone().addScaledVector(s.hipFwd, -0.14), 0.03, 0.05, 0.085, qHip);
+        if (bt === "obi") ball(P.beltKnot, s.waist.clone().addScaledVector(s.hipFwd, -0.175), 0.032, 0.055, 0.09, qHip);
         if (bt === "swordbelt") seg(P.hanger, s.waist.clone().addScaledVector(s.hipRight, -0.1).addScaledVector(s.hipFwd, 0.06),
           s.waist.clone().addScaledVector(s.hipRight, -0.165).addScaledVector(UP, -0.18).addScaledVector(s.hipFwd, -0.06), 0.011);
         if (bt === "baldric") {
           const a = s.shR.clone().addScaledVector(s.spine, 0.03), b = s.waist.clone().addScaledVector(s.hipRight, -0.15).addScaledVector(UP, -0.06);
           const c = a.clone().add(b).multiplyScalar(0.5), yv = a.clone().sub(b), half = yv.length() / 2; yv.normalize();
           const z = s.fwd.clone().cross(yv).normalize(), x = yv.clone().cross(z).normalize();
-          frame(P.baldric, c, x, yv, z, 0.14, half + 0.02, 0.13);
+          frame(P.baldric, c, x, yv, z, 0.165, half + 0.03, 0.15);
         }
       }
       // dagger, sheathed at the left hip: hilt up and forward, the sheath slanting down and back
@@ -915,7 +959,21 @@
       const hf = (o, origin, sx, sy, sz, up = hU) => frame(o, origin, L, up, L.clone().cross(up).normalize(), sx, sy, sz);
       const qDir = (dir) => new T.Quaternion().setFromUnitVectors(UP, dir.clone().normalize());
       const dirOf = (f, u, sd) => L.clone().multiplyScalar(f).addScaledVector(hU, u).addScaledVector(side, sd);
-      if (type === "beret") { // Landsknecht Barett: a broad flat slashed cap worn tilted, with ostrich plumes
+      if (type === "catears" || type === "bunnyears") { // a thin headband over the crown, ear to ear, with two ears standing on it
+        ball(P.hxBall, at(-0.008, 0.062), 0.016, 0.1, 0.116, hq); // (its lower half sits inside the hair, so only the arch over the top shows)
+        for (const sg of [-1, 1]) { const k = sg < 0 ? "L" : "R";
+          if (type === "catears") { // pointed triangular ears, leaning a little outward, the inside in the trim colour
+            const u = hU.clone().multiplyScalar(Math.cos(0.38)).addScaledVector(side, sg * Math.sin(0.38)).normalize(), z = L.clone().cross(u).normalize();
+            const base = at(-0.01, 0.118, sg * 0.068);
+            frame(P["earC" + k], base, L, u, z, 0.014, 0.075, 0.042);
+            frame(P["earCi" + k], base.clone().addScaledVector(L, 0.008).addScaledVector(u, 0.006), L, u, z, 0.006, 0.055, 0.026);
+          } else { // long upright bunny ears, splaying slightly, with pink insides
+            const u = hU.clone().multiplyScalar(Math.cos(0.2)).addScaledVector(side, sg * Math.sin(0.2)).normalize(), z = L.clone().cross(u).normalize();
+            const c = at(-0.01, 0.14, sg * 0.045).addScaledVector(u, 0.1);
+            frame(P["earB" + k], c, L, u, z, 0.016, 0.12, 0.038);
+            frame(P["earBi" + k], c.clone().addScaledVector(L, 0.011).addScaledVector(u, 0.008), L, u, z, 0.007, 0.095, 0.022);
+          } }
+      } else if (type === "beret") { // Landsknecht Barett: a broad flat slashed cap worn tilted, with ostrich plumes
         const up = hU.clone().addScaledVector(side, 0.32).normalize();
         hf(P.hxBrim, at(-0.01, 0.092, 0.025), 0.175, 0.016, 0.165, up);
         hf(P.hxBall, at(-0.01, 0.1, 0.025), 0.14, 0.035, 0.13, up);
@@ -928,9 +986,9 @@
         frame(P.hxDome, at(-0.016, 0.035), fw, up, sd, 0.106, 0.118, 0.102);
         frame(P.hxFrust, at(-0.014, 0.045), fw, up, sd, 0.205, 0.055, 0.2);
       } else if (type === "morion") { // Spanish morion: high comb, brim sweeping up fore and aft
-        hf(P.hxDome, at(0, 0.02), 0.106, 0.13, 0.102);
-        ball(P.hxBall, at(-0.008, 0.125), 0.095, 0.07, 0.008, hq);
-        hf(P.hxFrustUp, at(0, 0.012), 0.22, 0.06, 0.17);
+        hf(P.hxDome, at(-0.01, 0.05), 0.106, 0.125, 0.102); // set high on the head so the brim clears the eyes
+        ball(P.hxBall, at(-0.018, 0.15), 0.095, 0.07, 0.008, hq);
+        hf(P.hxFrustUp, at(-0.01, 0.048), 0.22, 0.06, 0.17);
       } else if (type === "tricorne") { // 18th century: the brim cocked up on three sides, a point to the front
         ball(P.hxBall, at(-0.01, 0.1), 0.098, 0.06, 0.1, hq);
         // the triangle's first corner lies on local z: point it forward
@@ -950,9 +1008,9 @@
         hf(P.hxCone, at(0, 0.075), 0.235, 0.075, 0.235);
         ball(P.hxBall2, at(0.12, 0.08), 0.022, 0.022, 0.006, hq);
       } else if (type === "turban") { // Mamluk turban wound about a red cap
-        frame(P.hxTorus, at(-0.012, 0.055), L, side.clone().negate(), hU, 0.112, 0.106, 0.13);
-        frame(P.hxTorus2, at(-0.015, 0.098), L, side.clone().negate(), hU, 0.094, 0.09, 0.11);
-        ball(P.hxBall2, at(-0.015, 0.125), 0.075, 0.05, 0.072, hq);
+        frame(P.hxTorus, at(-0.02, 0.088), L, side.clone().negate(), hU, 0.108, 0.104, 0.12);
+        frame(P.hxTorus2, at(-0.022, 0.128), L, side.clone().negate(), hU, 0.09, 0.087, 0.105);
+        ball(P.hxBall2, at(-0.022, 0.152), 0.072, 0.048, 0.07, hq);
       } else if (type === "coif") { // linen arming cap
         ball(P.hxBall, at(-0.028, 0.02), 0.104, 0.126, 0.101, hq);
       } else if (type === "fez") { // tall felt cap with a tassel (North Africa, Ottoman lands)
@@ -962,10 +1020,10 @@
       } else if (type === "kufi") { // close round cap (West Africa)
         hf(P.hxDome, at(0, 0.045), 0.104, 0.075, 0.1);
       } else if (type === "tagelmust") { // Tuareg indigo turban and veil, wound over the mouth and nose
-        frame(P.hxTorus, at(-0.012, 0.05), L, side.clone().negate(), hU, 0.112, 0.106, 0.13);
-        frame(P.hxTorus2, at(-0.015, 0.095), L, side.clone().negate(), hU, 0.096, 0.092, 0.11);
-        ball(P.hxBall, at(-0.015, 0.115), 0.08, 0.05, 0.078, hq);
-        ball(P.hxBall2, at(0.045, -0.055), 0.075, 0.07, 0.098, hq);
+        frame(P.hxTorus, at(-0.02, 0.088), L, side.clone().negate(), hU, 0.108, 0.104, 0.12);
+        frame(P.hxTorus2, at(-0.022, 0.128), L, side.clone().negate(), hU, 0.092, 0.089, 0.105);
+        ball(P.hxBall, at(-0.022, 0.145), 0.078, 0.05, 0.076, hq);
+        ball(P.hxBall2, at(0.045, -0.062), 0.072, 0.06, 0.098, hq); // the veil over mouth and nose, below the eyes
       } else if (type === "salakot") { // Filipino domed sun hat with a finial
         hf(P.hxCone, at(0, 0.07), 0.2, 0.095, 0.2);
         ball(P.hxBall2, at(0, 0.17), 0.018, 0.022, 0.018, hq);
@@ -1008,8 +1066,22 @@
     function drawMace(sw, H, d, edge) {
       const mc = sw.mace, p = H.clone().addScaledVector(d, mc.at * sw.blade), n = mc.n || 6, qd = new T.Quaternion().setFromUnitVectors(UP, d);
       const around = (i, k = n, a0 = 0) => edge.clone().applyAxisAngle(d, a0 + i * 2 * Math.PI / k).normalize();
-      P.mcBall.visible = true;
-      if (mc.type === "flanged") { // radiating iron flanges round a small core
+      P.mcBall.visible = mc.type !== "stick"; setFill(P.mcTop, M.blade);
+      if (mc.type === "stick") { // just a stick: the haft (drawn as the grip) and a few snapped-off twig stubs angled up it
+        for (const [i, t, a, len] of [[0, 0.15, 0.3, 0.06], [1, 0.4, 2.6, 0.08], [2, 0.62, 4.4, 0.05], [3, 0.84, 1.4, 0.07]]) {
+          const o = P["mcB" + i], at0 = H.clone().addScaledVector(d, t * sw.blade), u = around(0, 1, a).addScaledVector(d, 0.8).normalize(); o.visible = true;
+          seg(o, at0, at0.clone().addScaledVector(u, len + 0.012), 0.011); }
+        return; }
+      if (mc.type === "ogre") { // a torn-up sapling: the haft swells toward a big knotted burl at the end
+        const r = mc.r, hb = H.clone().addScaledVector(d, sw.blade - r * 0.9);
+        // the swelling haft: a long wooden taper from the burl down to the butt (the plain grip shows below it)
+        P.mcTop.visible = true; setFill(P.mcTop, M.grip); seg(P.mcTop, hb, H.clone().addScaledVector(d, -sw.grip), mc.haft || 0.034);
+        ball(P.mcBall, hb, r, r * 1.3, r * 0.92, qd);
+        for (let i = 0; i < 8; i++) { // knots and lumps all over the burl
+          const o = P["mcS" + i], u = around(i, 8, i * 0.4).addScaledVector(d, [0.5, -0.3, 0.1, 0.7, -0.5, 0.3, -0.1, 0.6][i]).normalize(); o.visible = true;
+          const k = [1, 0.7, 0.9, 0.6, 0.8, 1, 0.7, 0.85][i];
+          seg(o, hb.clone().addScaledVector(u, r * 0.7), hb.clone().addScaledVector(u, r * (1.05 + 0.15 * k)), r * 0.42 * k); }
+      } else if (mc.type === "flanged") { // radiating iron flanges round a small core
         ball(P.mcBall, p, 0.022, mc.h * 0.45, 0.022, qd);
         for (let i = 0; i < Math.min(n, 8); i++) { const o = P["mcF" + i], u = around(i); o.visible = true;
           const q = new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(u, d, u.clone().cross(d).normalize()));
@@ -1053,7 +1125,9 @@
       // blade
       P.blade.visible = false;
       const prof = sw.prof || (sw.shape === "parallel" ? [1, 0.67] : sw.shape === "acute" ? [1, 0.07] : [1, 0.19]);
-      const at = (t) => H.clone().addScaledVector(d, t * sw.blade).addScaledVector(edge, bladeOffset(sw, t));
+      // flatBend: the outer half of the blade bent out of its flat in an S (straight up to the middle, then one way and back the
+      // other toward the tip), like a much-used feder; it eases out of the straight part with no kink
+      const at = (t) => H.clone().addScaledVector(d, t * sw.blade).addScaledVector(edge, bladeOffset(sw, t)).addScaledVector(flat, sw.flatBend && t > 0.5 ? sw.flatBend * Math.sin(2 * Math.PI * (t - 0.5) * 2) * Math.sin(Math.PI * (t - 0.5) * 2) : 0);
       for (let i = 0; i < BSEGS; i++) {
         const o = P["bs" + i]; o.visible = !baz && !axe; if (baz || axe) continue;
         setGeo(o, sw.round ? GEO.bsegR : GEO.bseg);
@@ -1074,12 +1148,18 @@
         P["th" + i].visible = true; seg(P["th" + i], c0.clone().addScaledVector(edge, sg * r * 0.85), c0.clone().addScaledVector(edge, sg * (r + 0.022)).addScaledVector(d, 0.006), 0.012);
       }
       if (sw.forte && !baz) { P.cxForte.visible = true; frame(P.cxForte, H, edge, d, flat, wx * sw.forte[1], sw.forte[0], tz * 1.1); }
+      if (sw.nagel && !baz) { P.cxNagel.visible = true; seg(P.cxNagel, H.clone().addScaledVector(d, 0.004), H.clone().addScaledVector(d, 0.012).addScaledVector(flat, 0.045), 0.0065); } // a messer's Nagel: a peg out of the cross, over the hand
       if (sw.band && !baz) { P.cxBand.visible = true; frame(P.cxBand, H.clone().addScaledVector(d, 0.09), edge, d, flat, 0.0205 * wx * 1.12, 0.075, 0.0062 * 1.6); }
       if (sw.schilt) { P.cxSchilt.visible = true; const qB = new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(edge, d, flat));
         if (sw.schilt === "tulip") { // a large tulip schilt: a broad flared plate whose upper corners swell out into two lobes
           ball(P.cxSchilt, H.clone().addScaledVector(d, 0.048), 0.028, 0.05, 0.006, qB);
           for (const [k, sg] of [["cxTulipA", 1], ["cxTulipB", -1]]) { P[k].visible = true;
             ball(P[k], H.clone().addScaledVector(d, 0.068).addScaledVector(edge, sg * 0.028), 0.02, 0.045, 0.006, qB.clone().multiply(new T.Quaternion().setFromAxisAngle(V(0, 0, 1), -sg * 0.42))); } // petals leaning outward
+        } else if (sw.schilt === "pointed") { // a small schilt whose top rises to a soft point up the blade: a low oval
+          // with two narrow leaves leaning in over it, meeting at the blade like a gothic arch
+          ball(P.cxSchilt, H.clone().addScaledVector(d, 0.03), 0.026, 0.03, 0.006, qB);
+          for (const [k, sg] of [["cxTulipA", 1], ["cxTulipB", -1]]) { P[k].visible = true;
+            ball(P[k], H.clone().addScaledVector(d, 0.048).addScaledVector(edge, sg * 0.011), 0.014, 0.032, 0.006, qB.clone().multiply(new T.Quaternion().setFromAxisAngle(V(0, 0, 1), sg * 0.38))); }
         } else ball(P.cxSchilt, H.clone().addScaledVector(d, 0.045), 0.032, 0.045, 0.006, qB); }
       // grip and pommel
       const gr = sw.gripR || 0.017, pr = sw.pommel || 0.03, pe = H.clone().addScaledVector(d, -sw.grip);
@@ -1132,7 +1212,8 @@
           const a2 = a1.clone().addScaledVector(edge, sg * c * 0.35).addScaledVector(flat, sg * c * 0.22);
           const a3 = a2.clone().addScaledVector(edge, sg * c * 0.02).addScaledVector(flat, sg * c * 0.32);
           P[k].visible = P[k2].visible = P[k3].visible = P[kE].visible = true;
-          seg(P[k], H, a1, cr); seg(P[k2], a1, a2, cr); seg(P[k3], a2, a3, cr); ball(P[kE], a3, cr * 1.6); }
+          // sKnobs false: plain ends, just rounded off (no ball)
+          seg(P[k], H, a1, cr); seg(P[k2], a1, a2, cr); seg(P[k3], a2, a3, cr); ball(P[kE], a3, sw.sKnobs === false ? cr : cr * 1.6); }
       }
       if (!baz && cs === "flare") { P.cxEndA.visible = P.cxEndB.visible = true;
         ball(P.cxEndA, H.clone().addScaledVector(edge, c), cr * 1.9); ball(P.cxEndB, H.clone().addScaledVector(edge, -c), cr * 1.9); }
@@ -1230,12 +1311,13 @@
         ball(P["foot" + k], leg.end.clone().addScaledVector(toe, 0.07 * (look.footLen || 1)).setY(0.04), 0.13 * (look.footLen || 1), 0.042, 0.055, footQ);
       }
       // torso: hips follow the pelvis turn, chest adds twist and lean
-      const fem = look.fem ? 1 : 0; // the feminine build: wider hips, narrower chest (and a bust, placed with the kit)
+      const fem = look.fem ? 1 : 0; // the feminine build: wider hips, narrower chest
       frame(P.hips, s.pel.clone().addScaledVector(UP, -0.06), s.hipFwd, UP, s.hipRight, 0.12 * bk, B.waist + 0.06, 0.16 * bk * (fem ? 1.1 : 1));
       const skirtLen = look.skirtLen != null ? look.skirtLen : look.braies ? 0 : null;
       P.skirt.visible = skirtLen !== 0;
       frame(P.skirt, s.waist, s.hipFwd, UP, s.hipRight, 0.135 * bk * (look.skirtFlare || 1), skirtLen || (look.coat ? 0.4 : meyer || look.style === "fabris" || look.style === "hutton" ? 0.12 : look.style === "i33" ? 0.52 : 0.27), 0.165 * bk * (look.skirtFlare || 1));
-      frame(P.belt, s.waist, s.hipFwd, s.hipRight.clone().negate(), UP, 0.1 * bk * (fem ? 1.05 : 1), 0.122 * bk, look.beltW || 0.05);
+      const bw2 = look.beltType ? [0.113, 0.138] : [0.1, 0.122]; // an Armoury belt wraps round outside the jacket and skirt
+      frame(P.belt, s.waist, s.hipFwd, s.hipRight.clone().negate(), UP, bw2[0] * bk * (fem ? 1.05 : 1), bw2[1] * bk, look.beltW || 0.05);
       const chestBase = s.waist.clone().addScaledVector(s.spine, -0.03);
       frame(P.chest, chestBase, s.fwd, s.spine, s.right, 0.13 * bk * (fem ? 0.95 : 1), B.torso - B.waist + 0.04, 0.2 * bk * (fem ? 0.9 : 1));
       seg(P.neck, s.neck.clone().addScaledVector(s.spine, -0.04), s.head, 0.045);
@@ -1249,7 +1331,7 @@
       seg(P.nose, nose, nose.clone().addScaledVector(s.look, 0.035).addScaledVector(hU, -0.02), 0.016);
       for (const [k, sg] of [["eyeL", -1], ["eyeR", 1]]) ball(P[k], at(B.headR * 0.82, 0.02, sg * 0.035), 0.011);
       // under a hat the hair is tucked lower so it never pokes up through the crown or brim
-      if (look.hat || (look.hatType && look.hatType !== "frenchhood")) ball(P.hair, at(-0.03, -0.012), B.headR * 1.02, B.headR * 0.98, B.headR * 1.04, hq);
+      if (look.hat || (look.hatType && !["frenchhood", "catears", "bunnyears"].includes(look.hatType))) ball(P.hair, at(-0.03, -0.012), B.headR * 1.02, B.headR * 0.98, B.headR * 1.04, hq);
       else ball(P.hair, at(-0.03, 0.025), B.headR * 1.04, B.headR * 1.08, B.headR * 1.06, hq);
       const full = look.beard === 2;
       // beard follows the jaw and chin: centred below the mouth and mostly inside the head, so only the jawline,

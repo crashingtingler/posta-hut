@@ -87,7 +87,7 @@
     if (id === "hall") renderHall();
     if (id === "salle") renderSalle();
     if (id === "support") { renderSupport(); Sfx.preloadCoin && Sfx.preloadCoin(); }
-    if (id === "settings") $("#settings-name").textContent = me() || "—";
+    if (id === "settings") { $("#settings-name").textContent = me() || "—"; paintOnlineRow(); }
     if (id === "setup") renderSetup();
     if (id === "armoury") Armoury.render();
   }
@@ -189,23 +189,23 @@
     const all = allMastersOn(settings.masters), note = $("#masters-note");
     const plates = G.filter((g) => settings.masters.includes(g.master) && hasPlate(g)).length;
     const startable = settings.view !== "manuscript" || plates >= 2;
-    // XP is scaled by the share of guards these masters cover; streaks always count.
-    const pct = Math.round(xpShareFor(settings.masters, settings.view) * 100), n = poolFor(settings.masters, settings.view).length;
+    // XP no longer depends on which masters are ticked (only "No timer" lowers it); streaks always count.
+    const n = poolFor(settings.masters, settings.view).length;
     if (settings.view === "manuscript" && plates < 2) {
       note.textContent = "Not enough plates for these masters — pick another master, or turn off “Only play with plates”";
       note.classList.add("practice");
     } else {
-      note.textContent = all ? `All masters · ${n} guards · full XP`
-                             : `${n} guards · ${pct}% XP (tick every master for full XP)`;
+      const xpNote = settings.untimed ? `${Math.round(UNTIMED_XP * 100)}% XP (no timer)` : "full XP";
+      note.textContent = (all ? "All masters · " : "") + `${n} guards · ${xpNote}`;
       note.classList.remove("practice");
     }
     $$("[data-start]").forEach((b) => b.classList.toggle("disabled", !startable));
   }
   // A run is ranked only with every master selected, and (manuscript view) every guard having its plate.
-  // XP share: the fraction of the game being played (guards of the chosen masters out of all guards in this view).
-  // All masters = full XP; fewer masters = proportionally less. Best streaks still need every master.
+  // XP share: always full, whichever masters are ticked (only "No timer" lowers XP, in the results).
+  // (Ranked runs and best streaks still need every master.)
   const poolFor = (masters, view) => G.filter((g) => masters.includes(g.master) && (view !== "manuscript" || hasPlate(g)));
-  const xpShareFor = (masters, view) => { const all = poolFor(M.map((m) => m.id), view).length; return all ? Math.min(1, poolFor(masters, view).length / all) : 1; };
+  const xpShareFor = () => 1;
   const isRanked = () => allMastersOn(settings.masters) &&
     true; // manuscript runs use only guards with plates and have their own boards, so every-master runs count
 
@@ -548,7 +548,8 @@
   const players = () => store.get("players", {});
   const me = () => store.get("player", "");
   const myRecord = () => Object.assign({ xp: 0, streak: 0 }, players()[me()] || {});
-  function saveRecord(rec) { const all = players(); all[me()] = Object.assign({}, rec, { updated: new Date().toISOString() }); store.set("players", all); }
+  function saveRecord(rec) { const all = players(); all[me()] = Object.assign({}, rec, { updated: new Date().toISOString() }); store.set("players", all);
+    Online.push(me(), all[me()]); } // (sent to the online Hall a moment later, when it's set up)
   function setPlayer(name) {
     const all = players();
     if (!all[name]) {
@@ -558,6 +559,7 @@
       store.set("players", all);
     }
     store.set("player", name);
+    Online.push(name, players()[name]);
   }
 
   Armoury.init({ myRecord, saveRecord, guards: G, traditions: T });
@@ -570,7 +572,7 @@
     $("#res-combo").textContent = run.bestCombo;
     $("#res-fast").textContent = run.fastest == null ? "–" : run.fastest.toFixed(2) + "s";
 
-    // XP always counts, scaled by the share of guards played; best streaks count with any masters.
+    // XP always counts in full (30% with no timer); best streaks count with any masters.
     const rec = myRecord(), rb = rankFor(rec.xp), share = run.xpShare == null ? 1 : run.xpShare;
     const gained = Math.round(run.score * share * (run.untimed ? UNTIMED_XP : 1));
     rec.xp += gained;
@@ -599,11 +601,34 @@
     const key = hallTab === "celerity" ? "xp" : "streak";
     $("#hall-col").textContent = hallTab === "celerity" ? "XP" : "Best streak";
     $("#hall-note").textContent = hallTab === "celerity" ? "Celerity — total XP earned." : "Fortitude — the most correct answers in a row.";
-    const rows = Object.entries(players()).map(([name, r]) => ({ name, v: r[key] || 0, patron: r.patron, mine: name === me() }))
-      .filter((r) => r.v > 0 || r.mine).sort((a, b) => b.v - a.v || a.name.localeCompare(b.name)).slice(0, 20);
+    // this device's players at once; then, with the online Hall set up, the world's top players replace them
+    const all = players();
+    drawHall(Object.entries(all).map(([name, r]) => ({ name, rec: r, v: r[key] || 0, patron: r.patron, mine: name === me() }))
+      .filter((r) => r.v > 0 || r.mine).sort((a, b) => b.v - a.v || a.name.localeCompare(b.name)).slice(0, 20), null);
+    if (!Online.enabled) return;
+    const asked = hallTab;
+    $("#hall-online").textContent = "Fetching the Hall…";
+    Online.hall(key).then((list) => {
+      if (asked !== hallTab) return; // the tab changed meanwhile: that tab's own call draws
+      if (!list) { $("#hall-online").textContent = "Offline: showing the players on this device."; return; }
+      const myId = Online.myId(me());
+      drawHall(list.map((r) => ({ name: r.name, rec: r, v: r[key] || 0, mine: !!myId && r.id === myId, online: true })), list);
+    });
+  }
+  // one odd record must never blank the Hall: draw a default fencer for it instead
+  const safePortrait = (rec) => { try { return Armoury.portrait(rec); } catch (e) { return Armoury.portrait({}); } };
+  function drawHall(rows, online) {
+    const st = Online.status(me()), out = Online.optedOut(me());
+    $("#hall-online").textContent = !Online.enabled ? "" : !online ? "" :
+      out ? "The world's best fencers. You've left the online Hall (Settings)." :
+      st === "name" ? "The world's best fencers. Your name wasn't accepted online: change it in Settings." : "The world's best fencers.";
     $("#hall-body").innerHTML = rows.length
-      ? rows.map((r, i) => `<tr class="${i === 0 && r.v > 0 ? "gold" : ""} ${r.mine ? "me" : ""}"><td>${i + 1}</td><td class="mk">${esc(r.name)}${r.patron ? '<span class="patron" title="Patron of the Salle"></span>' : ""}</td><td>${r.v.toLocaleString()}</td></tr>`).join("")
-      : `<tr><td colspan="3" class="empty">No names yet. Fight a bout.</td></tr>`;
+      ? rows.map((r, i) => `<tr class="hall-row ${i === 0 && r.v > 0 ? "gold" : ""} ${r.mine ? "me" : ""}" data-i="${i}"><td>${i + 1}</td>` +
+        `<td class="face"><button class="hall-face" aria-label="See ${esc(r.name)}'s fencer"><img alt="" src="${safePortrait(r.rec)}"></button></td>` +
+        `<td class="mk">${esc(r.name)}${r.patron ? '<span class="patron" title="Patron of the Salle"></span>' : ""}<small class="hall-rank">${esc(rankFor(r.rec.xp || 0)[1])}</small></td><td>${r.v.toLocaleString()}</td></tr>`).join("")
+      : `<tr><td colspan="4" class="empty">No names yet. Fight a bout.</td></tr>`;
+    // the whole row opens that player's fencer (the face is still a button, for keyboard and screen readers)
+    $$("#hall-body .hall-row").forEach((tr) => { const r = rows[+tr.dataset.i]; tr.addEventListener("click", () => openFencer(r.name, r.online ? r.rec : null)); });
   }
 
   // ---------- your name (asked at launch, changeable in Settings) ----------
@@ -629,6 +654,21 @@
   });
   $("#name-cancel").addEventListener("click", () => show(nameReturn));
   $("#change-name").addEventListener("click", () => askName("settings"));
+  // the online Hall: on by default; unticking deletes this name's online record and stops sending it
+  function paintOnlineRow() {
+    $("#online-row").classList.toggle("hidden", !Online.enabled || !me());
+    $("#opt-online").checked = !Online.optedOut(me());
+    $("#online-hint").textContent = "Shows your name, fencer, XP and best streak to everyone. Untick to delete your online record.";
+  }
+  $("#opt-online").addEventListener("change", async (e) => {
+    const box = e.target; Sfx.quill(); box.disabled = true;
+    if (box.checked) { Online.join(me(), myRecord()); $("#online-hint").textContent = "You're back in the online Hall."; }
+    else { $("#online-hint").textContent = "Deleting your online record…";
+      const ok = await Online.leave(me());
+      if (!ok) box.checked = true;
+      $("#online-hint").textContent = ok ? "Your online record is deleted. Your progress on this device is kept." : "Couldn't reach the Hall. Try again when you're online."; }
+    box.disabled = false;
+  });
   $("#settings-back").addEventListener("click", () => { Sfx.quill(); show(settingsFrom); }); // back to where Settings was opened
 
   // ---------- support / tip jar ----------
@@ -770,12 +810,27 @@
   function openZoom(g, side, p, caption) {
     const z = $("#vzoom"); z.classList.remove("hidden"); Sfx.quill();
     if (!zoomFig) zoomFig = Fencer3D.makeFigure($("#vzoom-stage"), "#a3261d");
-    zoomFig.setAccent(accent(g)); zoomFig.setLook(salleLook || Looks.randomLook(g.tradition));
+    zoomFig.setAccent(accent(g)); zoomFig.setSword(null); zoomFig.setLook(salleLook || Looks.randomLook(g.tradition));
     zoomYaw = yawFor(side, p.view != null ? p.view : 25);
     zoomFig.setView(zoomYaw); zoomFig.set(p); zoomFig.render();
     z.querySelector(".vzoom-cap").textContent = caption;
   }
-  const closeZoom = () => $("#vzoom").classList.add("hidden");
+  // Hall of Masters: a player's whole fencer, in their own garb and guard; drag to turn
+  function openFencer(name, online) { // online: that player's row from the online Hall
+    const r = online ? online : players()[name]; if (!r) return;
+    const z = $("#vzoom"); z.classList.remove("hidden"); Sfx.quill();
+    // a name in the online Hall (not your own) can be reported
+    const rep = $("#vzoom-report"), canReport = !!(online && online.id && online.id !== Online.myId(me()));
+    rep.classList.toggle("hidden", !canReport); rep.disabled = false; rep.textContent = "Report this name";
+    rep.onclick = canReport ? async () => { rep.disabled = true; rep.textContent = "Sending…";
+      const ok = await Online.report(me(), online.id, name); rep.textContent = ok ? "Reported. Thank you." : "Couldn't send. Try again later."; rep.disabled = ok; } : null;
+    if (!zoomFig) zoomFig = Fencer3D.makeFigure($("#vzoom-stage"), "#a3261d");
+    zoomFig.setAccent("#a3261d");
+    let p; try { p = Armoury.showFencer(zoomFig, r); } catch (e) { p = Armoury.showFencer(zoomFig, {}); }
+    zoomYaw = p.view != null ? p.view : 25; zoomFig.setView(zoomYaw); zoomFig.render();
+    z.querySelector(".vzoom-cap").textContent = `${name} · ${rankFor(r.xp || 0)[1]} · ${(r.xp || 0).toLocaleString()} XP · best streak ${r.streak || 0}`;
+  }
+  const closeZoom = () => { $("#vzoom").classList.add("hidden"); $("#vzoom-report").classList.add("hidden"); };
   $("#vzoom-x").addEventListener("click", closeZoom);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeZoom(); });
   { let dragX = null;
@@ -798,7 +853,7 @@
   $$(".big").forEach((b) => { if (b.querySelector(".lbl")) return;
     const t = [...b.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim()); if (!t) return;
     const s = document.createElement("span"); s.className = "lbl"; s.textContent = t.textContent.trim(); b.replaceChild(s, t); });
-  if (me()) show("title"); else askName("title"); // first launch: ask the player's name
+  if (me()) { show("title"); Online.push(me(), myRecord()); } else askName("title"); // first launch: ask the player's name (else sync it online)
   if (Tips.returned()) { show("support"); thankTipper(); } // back from paying a tip on Stripe
   window.__stanceOff = { show, startRun, answer, finish, distractors, get run() { return run; } }; // debug hook
   // Screenshot hook: index.html#demo=play|wrong|result|salle|hall
@@ -814,8 +869,13 @@
     document.body.innerHTML = "<pre id=out>" + tests.map((t) => JSON.stringify(t) + " → " + (nameProblem(t.trim()) || "OK")).join("\n") + "</pre>";
   }
   if (demo === "hall") {
-    store.set("players", { "Fiore dei Lib": { xp: 9200, streak: 14 }, "Liechtenauer": { xp: 15400, streak: 9, patron: true }, "Zoë": { xp: 1200, streak: 21 } });
+    store.set("players", {
+      "Fiore dei Lib": { xp: 9200, streak: 14, kit: { outfit: "fiore", hat: "crown", beard: "full", hair: "short", sword: "l18a:gold", stance: "posta_di_donna" } },
+      "Liechtenauer": { xp: 15400, streak: 9, patron: true, kit: { outfit: "meyer", armour: "gothic", hat: "sallet", sword: "zwei:steel", stance: "vom_tag" } },
+      "Zoë": { xp: 1200, streak: 21, kit: { body: "slender", hair: "braids", outfit: "onna", sword: "naginata:black", stance: "at_ease", stanceVi: 1, colors: { hair: "#7a3a1e" } } } });
     store.set("player", "Zoë");
+    const open = (location.hash.match(/open=([^&]+)/) || [])[1];
+    if (open) setTimeout(() => { const b = document.querySelector(`.hall-row[data-name="${decodeURIComponent(open)}"] .mk`); if (b) b.click(); }, 300); // (clicks the name, not the face)
   }
   if (demo === "play" || demo === "wrong" || demo === "result") {
     settings.reducedMotion = true; startRun("bout");

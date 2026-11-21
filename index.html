@@ -112,8 +112,9 @@
     <h2 class="heading">Hall of Masters</h2>
     <div class="toggle" id="hall-tab"><button data-v="celerity">Celerity</button><button data-v="fortitude">Fortitude</button></div>
     <p class="hall-note" id="hall-note"></p>
-    <table class="board"><thead><tr><th>#</th><th>Name</th><th id="hall-col">XP</th></tr></thead><tbody id="hall-body"></tbody></table>
-    <p class="hall-note">XP counts in full with every master ticked, in part with fewer. Streaks always count.</p>
+    <p class="hall-note hall-online" id="hall-online" role="status"></p>
+    <table class="board hall-board"><thead><tr><th>#</th><th></th><th>Name</th><th id="hall-col">XP</th></tr></thead><tbody id="hall-body"></tbody></table>
+    <p class="hall-note">XP counts in full whichever masters you play (30% with no timer). Streaks always count.</p>
     <button class="big ghost" data-go="title">Back</button>
   </section>
 
@@ -171,9 +172,10 @@
     <div class="settings-list">
       <div class="set hidden" id="install-row" style="cursor:default"><span style="flex:1"><b>Install as an app</b><small id="install-hint">Puts Posta hut on your home screen. It opens full-screen and works with no signal.</small></span><button class="big ghost" id="install-btn" style="min-height:40px;font-size:16px;padding:4px 14px">Install</button></div>
       <div class="set" style="cursor:default"><span style="flex:1"><b>Your name</b><small>Shown on the Hall of Masters: <span id="settings-name"></span></small></span><button class="big ghost" id="change-name" style="min-height:40px;font-size:16px;padding:4px 14px">Change</button></div>
+      <label class="set hidden" id="online-row"><input type="checkbox" id="opt-online"><span><b>Online Hall of Masters</b><small id="online-hint">Shows your name, fencer, XP and best streak to everyone. Untick to delete your online record.</small></span></label>
       <label class="set"><input type="checkbox" id="opt-plates"><span><b>Only play with plates</b><small>Questions show the original manuscript drawings instead of drawn fencers. Only guards with a plate are asked.</small></span></label>
       <label class="set"><input type="checkbox" id="opt-sound"><span><b>Sound</b><small>Blade clashes, thuds and the coin toss.</small></span></label>
-      <label class="set"><input type="checkbox" id="opt-mixlooks"><span><b>Mixed outfits <i class="hard">unfairly hard</i></b><small>Fencers wear German, Italian or I.33 clothes at random, so you can't tell a Meyer guard from a Fiore one by dress. Only the guard itself gives it away (the buckler still shows a sword-and-buckler ward).</small></span></label>
+      <label class="set"><input type="checkbox" id="opt-mixlooks"><span><b>Mixed outfits</b><small>Fencers wear German, Italian or I.33 clothes at random, so you can't tell a Meyer guard from a Fiore one by dress. Only the guard itself gives it away (the buckler still shows a sword-and-buckler ward).</small></span></label>
       <label class="set"><input type="checkbox" id="opt-motion"><span><b>Reduced motion</b><small>Skip the fencer’s move into each guard and other animations.</small></span></label>
       <div class="set" style="cursor:default"><span style="flex:1"><b>Report an error</b><small>Spotted a wrong guard name, pose, plate or description? Tell the author.</small></span><button class="big ghost report-btn" id="report-settings" style="min-height:40px;font-size:16px;padding:4px 14px">Report</button></div>
     </div>
@@ -242,10 +244,19 @@
       <p class="arm-hint">Spending XP here never lowers your score in the Hall of Masters.</p>
     </div>
   </section>
+  <div id="arm-welcome" class="report hidden" role="dialog" aria-modal="true" aria-labelledby="arm-welcome-title">
+    <div class="report-card arm-welcome">
+      <h3 id="arm-welcome-title">Welcome to the Armoury</h3>
+      <p>This is your own fencer. Every guard you name in a bout earns XP, and this is where you spend it. Your fencer here will be displayed in the Hall of Masters.</p>
+      <p class="arm-welcome-free"><b class="arm-welcome-red">There are no microtransactions in Posta hut.</b> Nothing here costs real money. Everything is earned by playing.</p>
+      <div class="report-go arm-welcome-go"><button type="button" class="big" id="arm-welcome-ok">To the racks</button></div>
+    </div>
+  </div>
   <div id="vzoom" class="vzoom hidden" role="dialog" aria-label="Variant, zoomed">
     <button class="vzoom-x" id="vzoom-x" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4.2 5.6 C9 9.5 14 14.5 19.4 19.8 C15.6 14.2 10.8 8.8 5.6 4.2 Z M19.8 4.6 C14.5 9 9.5 14 4.6 19.4 C9.8 15.6 15 10.6 18.4 4.2 Z" fill="currentColor" stroke="currentColor" stroke-width="0.9" stroke-linejoin="round"/></svg></button>
     <div class="vzoom-stage" id="vzoom-stage"></div>
     <p class="vzoom-cap"></p><p class="vzoom-hint">Drag to rotate</p>
+    <button class="vzoom-report hidden" id="vzoom-report" type="button">Report this name</button>
   </div>
   <div id="report" class="report hidden" role="dialog" aria-modal="true" aria-labelledby="report-title">
     <form class="report-card" id="report-form">
@@ -268,6 +279,8 @@
 <script src="js/audio.js"></script>
 <script src="js/tips.js"></script>
 <script src="js/report.js"></script>
+<script src="js/online-config.js"></script>
+<script src="js/online.js"></script>
 <script src="js/armoury.js"></script>
 <script src="js/game.js"></script>
 <script>

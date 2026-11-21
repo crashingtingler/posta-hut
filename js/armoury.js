@@ -2,9 +2,9 @@
 // and set up the fencer's build, skin, hair and facial hair (free). Your fencer starts in linen braies with an oak waster,
 // standing at ease. Bought things are kept per player name (players[name].owned / .kit / .spent). Spending never lowers
 // the XP shown in the Hall of Masters: the purse is XP earned minus XP spent. Quiz fencers keep their historical dress.
-// Prices are placeholders: everything costs PRICE for now.
+// Prices: see priceOf (swords by length, garb/armour/headwear/belts in PRICES, haircuts every time).
 (function () {
-  const PRICE = 100;
+  const PRICE = 1000; // fallback for anything not priced below
   const SKIN0 = "#f0d9b8", SKIN = "skin"; // "skin" in a garb's colours = the fencer's own skin tone
   const $ = (s) => document.querySelector(s);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -71,11 +71,15 @@
       spec: { blade: 0.98, grip: 0.28, w: 0.75, shape: "parallel", cross: 0.14, pommelStyle: "pear", pommel: 0.026, schilt: true } },
     { id: "federtulip", cls: "long", name: "Tulip Feder", note: "Fencing trainer with a large tulip-shaped schilt, its upper corners flaring into lobes",
       spec: { blade: 0.98, grip: 0.28, w: 0.75, shape: "parallel", cross: 0.14, pommelStyle: "pear", pommel: 0.026, schilt: "tulip" } },
-    { id: "squillon", cls: "long", name: "S-Quillon Longsword", note: "Late 1400s · the cross bent into an S lying flat, the blade through its middle",
+    { id: "usedfeder", cls: "long", name: "Well Used Feder", note: "its seen some things",
+      spec: { blade: 0.98, grip: 0.28, w: 0.75, shape: "parallel", cross: 0.14, pommelStyle: "pear", pommel: 0.026, schilt: true, flatBend: 0.03 } },
+    { id: "squillon", cls: "long", name: "S-Quillon Longsword", note: "Longsword, late 1400s · its quillons curl away in opposite directions round the blade, like an S laid flat",
       spec: { blade: 0.95, grip: 0.27, w: 1, shape: "taper", cross: 0.14, crossStyle: "s", pommelStyle: "pear", pommel: 0.03 } },
+    { id: "sfeder", cls: "long", name: "S-Quillon Feder", note: "Fencing trainer with S-shaped quillons, plain at the ends, and a small, slightly pointed schilt",
+      spec: { blade: 0.98, grip: 0.28, w: 0.75, shape: "parallel", cross: 0.14, crossStyle: "s", sKnobs: false, pommelStyle: "pear", pommel: 0.026, schilt: "pointed" } },
     { id: "cluny", cls: "long", name: "The Cluny Sword", note: "Oakeshott Type XVa, late 1400s · Musée de Cluny, Paris · long grip, slender point, S-shaped cross, round coin pommel",
       spec: { blade: 0.93, grip: 0.28, w: 0.95, shape: "acute", cross: 0.125, crossStyle: "s", pommelStyle: "wheel", pommel: 0.033, gripColor: "#3a2618" } },
-    { id: "writhen", cls: "long", name: "The Writhen-hilt Sword", note: "Royal Armouries IX.949, c. 1480, probably German · ex Spitzer and Hearst collections · a straight writhen cross, an inverted-pyramid pommel, its original wooden grip",
+    { id: "writhen", cls: "long", name: "The Writhen-hilt Sword", note: "Hand-and-a-half sword, c. 1480, after the writhen-hilt sword in the Royal Armouries · cross and inverted-pyramid pommel twisted in spiral flutes, a wooden grip",
       spec: { blade: 0.92, grip: 0.25, w: 1, shape: "acute", cross: 0.13, crossStyle: "straight", pommelStyle: "pyramid", pommel: 0.032, writhen: true, gripColor: "#7a5230" } },
     { id: "flamberge", cls: "long", name: "Flamberge Longsword", note: "Wavy 'flame' blade · German, late 1500s",
       spec: { blade: 0.95, grip: 0.27, w: 1, shape: "taper", cross: 0.13, crossStyle: "flare", pommelStyle: "pear", pommel: 0.028, flame: { from: 0.12, amp: 0.008, n: 8 } } },
@@ -105,6 +109,8 @@
       spec: { blade: 0.78, grip: 0.12, w: 1, shape: "acute", cross: 0.1, crossStyle: "flare", pommelStyle: "wheel", pommel: 0.03, band: true } },
     { id: "messer", cls: "arming", name: "Langes Messer", note: "German long knife, 1400s · single edge, gently curved",
       spec: { blade: 0.8, grip: 0.14, w: 1.1, shape: "taper", curve: 0.025, cross: 0.1, pommelStyle: "cap", pommel: 0.02 } },
+    { id: "kriegsmesser", cls: "two", name: "Kriegsmesser", note: "German war knife, c. 1500 · a two-handed messer: broad curved single-edged blade with a clipped point, Nagel and hooked pommel cap",
+      spec: { blade: 0.98, grip: 0.3, handB: 0.22, w: 1.35, prof: [1, 1, 1.02, 1.05, 1.02, 0.15], curve: 0.035, cross: 0.13, nagel: true, pommelStyle: "eagle", gripColor: "#3a2618" } },
     // rapiers
     { id: "r_ring", cls: "rapier", name: "Ring-hilt Rapier", note: "Italian, c. 1600 · as Fabris fenced with it",
       spec: { blade: 1.08, grip: 0.12, w: 0.5, cross: 0.13, ring: true, bow: true, pommel: 0.028 } },
@@ -233,6 +239,10 @@
       spec: { blade: 0.45, grip: 0.12, gripColor: "#7a5230", gripR: 0.016, cross: 0, pommelStyle: "cap", pommel: 0.02, bladeColor: "#c9b48a", mace: { type: "pear", at: 0.92, r: 0.04 } } },
     { id: "knobkerrie", cls: "maces", name: "Knobkerrie", note: "Southern African fighting and throwing club",
       spec: { blade: 0.55, grip: 0.1, gripColor: "#7a5230", gripR: 0.016, cross: 0, pommelStyle: "cap", pommel: 0.02, gripColor: "#5a3a22", bladeColor: "#5a3a22", mace: { type: "knob", at: 0.95, r: 0.045 } } },
+    { id: "stick", cls: "maces", single: true, name: "Stick", note: "Just a stick",
+      spec: { blade: 0.95, grip: 0.27, handB: 0.22, gripR: 0.017, cross: 0, pommelStyle: "none", gripColor: "#7a5230", bladeColor: "#7a5230", woodTex: true, mace: { type: "stick" } } },
+    { id: "ogreclub", cls: "maces", single: true, name: "Ogre Club", note: "A sapling torn up by the roots, the knotted burl left on for the business end",
+      spec: { blade: 0.95, grip: 0.25, handB: 0.25, gripR: 0.022, cross: 0, pommelStyle: "cap", pommel: 0.02, gripColor: "#7a5230", bladeColor: "#7a5230", woodTex: true, mace: { type: "ogre", r: 0.11, haft: 0.052 } } },
     // spears
     { id: "wingedspear", cls: "spears", name: "Winged Spear", note: "Carolingian, 800s · lugs below the blade stop it running too deep",
       spec: { blade: 0.4, prof: [0.9, 1.4, 1.2, 0.6, 0.05], hooks: { at: 0.02, len: 0.05 }, handB: 0.55, lift: 0.9, grip: 1.75, handA: 0.05, gripColor: "#7a5230", gripR: 0.016, cross: 0, pommelStyle: "cap", pommel: 0.02, socket: 0.09 } },
@@ -418,6 +428,11 @@
       look: { style: "plain", jacket: "#f1e9da", arms: SKIN, skirtLen: 0.36, thigh: SKIN, shin: SKIN, shoe: "#9a6a3a" } },
     { id: "shendyt", name: "Shendyt", note: "Egyptian linen kilt · bare-chested, c. 1300 BC",
       look: { style: "plain", jacket: SKIN, arms: SKIN, skirtColor: "#f6f1e6", skirtLen: 0.3, thigh: SKIN, shin: SKIN, shoe: SKIN, braies: false } },
+    // locked to the player named Cass (see LOCKED below)
+    { id: "cass", name: "Cass's Kit", note: "Stinky!",
+      look: { style: "plain", jacket: "#8a8c8e", arms: "#8a8c8e", stripes: ["#8a8c8e", "#6f7173"], stripesAcross: true, stripeRows: 4, skirtLen: 0.2, bulk: 1.08,
+        thigh: "#1d1712", puffs: true, shin: "#e0b62a", shinL: "#e0b62a", shinR: "#e07a1e", shoe: "#1d1712", gloves: "#1d1712",
+        armourParts: { couter: 0.005, poleyn: 0.005 }, armourColor: "#c9ccce" } },
   ];
 
   // ---------- armour (worn over the garb; colourable) ----------
@@ -495,6 +510,8 @@
     { id: "veil", group: "hat", paint: "cloth", name: "Wimple & Veil", note: "Linen head-dress · 1200s–1300s", look: { hatType: "veil", hatColor: "#f3ede0", hatTrim: "#f3ede0", hatTop: 0.18 } },
     { id: "imperialcrown", group: "hat", paint: "metal", name: "Royal Crown", note: "Closed crown with crossing arches, orb and cross, over a velvet cap · 1500s", look: { hatType: "imperial", hatColor: "#d4a62a", hatTrim: "#8e1b2b", plumeColor: "#e8c45a", hatTop: 0.27 } },
     { id: "crown", group: "hat", name: "Master's Crown", note: "Fiore's sign of a master", look: { crown: true, hatTop: 0.2 } },
+    { id: "catears", group: "hat", paint: "cloth", name: "Cat Ears", note: "A headband with pointed cat ears", look: { hatType: "catears", hatColor: "#1d1712", hatTrim: "#e6a7b4" } },
+    { id: "bunnyears", group: "hat", paint: "cloth", name: "Bunny Ears", note: "A headband with long bunny ears", look: { hatType: "bunnyears", hatColor: "#f1e9da", hatTrim: "#e6a7b4" } },
     { id: "jingasa", group: "world", paint: "cloth", name: "Jingasa", note: "Japanese lacquered war hat", look: { hatType: "jingasa", hatColor: "#1d1712", hatTrim: "#d4a62a", hatTop: 0.17 } },
     { id: "turban", group: "world", paint: "cloth", name: "Mamluk Turban", note: "Wound about a red cap · Egypt, c. 1400", look: { hatType: "turban", hatColor: "#f3ede0", hatTrim: "#a3261d", hatTop: 0.21 } },
     { id: "tagelmust", group: "world", paint: "cloth", name: "Tagelmust", note: "Tuareg indigo turban and veil", look: { hatType: "tagelmust", hatColor: "#24304f", hatTrim: "#24304f", hatTop: 0.2 }, trimFollows: true },
@@ -520,19 +537,21 @@
     { id: "frogmouth", group: "helm", paint: "metal", name: "Frog-mouth Helm", note: "Stechhelm, German, c. 1500 · for the joust: a wide ridged crown, the sight a gap beneath it, the narrower lower plate bolted to the breastplate", look: { helm: "frogmouth", faceHidden: true, hatColor: "#c9ccce", hatTop: 0.22 } },
     { id: "bigfootmask", group: "grotesque", paint: "cloth", name: "Bigfoot Mask", note: "Goes with the Bigfoot suit", look: { helm: "bigfoot", faceHidden: true, hatColor: "#5a3a22", hatTrim: "#3a2a1d", hatTop: 0.18 } },
     { id: "oni", group: "grotesque", paint: "metal", name: "Oni Menpō", note: "Kabuto with a red demon face mask", look: { helm: "oni", faceHidden: true, hatColor: "#1d1712", hatTrim: "#a3261d", hatTop: 0.27 } },
+    { id: "hemamask", group: "sport", paint: "cloth", name: "HEMA Fencing Mask", note: "Modern 1600N mask · steel mesh, padded bib, back strap", look: { helm: "fencing", mask: true, faceHidden: true, hatColor: "#24211f", hatTrim: "#24211f", hatTop: 0.15 }, trimFollows: true },
+    { id: "hemaoverlay", group: "sport", paint: "cloth", name: "Mask with Overlay", note: "Padded overlay over the crown and back of the head", look: { helm: "fencingoverlay", faceHidden: true, hatColor: "#24211f", hatTrim: "#24211f", hatTop: 0.17 }, trimFollows: true },
   ];
-  const HAT_GROUPS = [["hat", "Hats & headdresses"], ["world", "From further afield"], ["helm", "Helms"], ["grotesque", "Grotesque helms"]];
+  const HAT_GROUPS = [["hat", "Hats & headdresses"], ["world", "From further afield"], ["sport", "Fencing masks"], ["helm", "Helms"], ["grotesque", "Grotesque helms"]];
 
   // ---------- belts ----------
   const BELTS = [
     { id: "none", name: "No Belt", note: "" },
-    { id: "belt", name: "Leather Belt", note: "With a brass buckle", look: { beltType: "belt", beltW: 0.05, beltColor: "#5a3a22" } },
-    { id: "swordbelt", name: "Sword Belt", note: "Belt with a hanger strap at the left hip", look: { beltType: "swordbelt", beltW: 0.055, beltColor: "#3a2618" } },
-    { id: "sash", name: "Sash", note: "Wide cloth sash, knotted at the side", look: { beltType: "sash", beltW: 0.15, beltColor: "#2a3d6e" } },
-    { id: "lksash", name: "Landsknecht Sash", note: "A broad red sash · 1500s", look: { beltType: "sash", beltW: 0.2, beltColor: "#a3261d" } },
-    { id: "obi", name: "Obi", note: "Japanese sash, tied at the back", look: { beltType: "obi", beltW: 0.2, beltColor: "#1d1712" } },
-    { id: "baldric", name: "Baldric", note: "Shoulder belt across the chest", look: { beltType: "baldric", beltW: 0.05, beltColor: "#5a3a22" } },
-    { id: "rope", name: "Rope Girdle", note: "A knotted cord, as monks wore", look: { beltType: "rope", beltW: 0.03, beltColor: "#d9c9a0" } },
+    { id: "belt", name: "Leather Belt", note: "With a brass buckle", look: { beltType: "belt", beltW: 0.08, beltColor: "#5a3a22" } },
+    { id: "swordbelt", name: "Sword Belt", note: "Belt with a hanger strap at the left hip", look: { beltType: "swordbelt", beltW: 0.085, beltColor: "#3a2618" } },
+    { id: "sash", name: "Sash", note: "Wide cloth sash, knotted at the side", look: { beltType: "sash", beltW: 0.2, beltColor: "#2a3d6e" } },
+    { id: "lksash", name: "Landsknecht Sash", note: "A broad red sash · 1500s", look: { beltType: "sash", beltW: 0.26, beltColor: "#a3261d" } },
+    { id: "obi", name: "Obi", note: "Japanese sash, tied at the back", look: { beltType: "obi", beltW: 0.28, beltColor: "#1d1712" } },
+    { id: "baldric", name: "Baldric", note: "Shoulder belt across the chest", look: { beltType: "baldric", beltW: 0.08, beltColor: "#5a3a22" } },
+    { id: "rope", name: "Rope Girdle", note: "A knotted cord, as monks wore", look: { beltType: "rope", beltW: 0.05, beltColor: "#d9c9a0" } },
   ];
 
   // ---------- the fencer (free) ----------
@@ -578,31 +597,124 @@
   const PREFIX = Object.fromEntries(Object.entries(SLOTS).map(([p, s]) => [s, p]));
   const DEFAULT_KIT = { body: "broad", hair: "short", beard: "none", eyes: "none", outfit: "braies", armour: "none", hat: "none", belt: "none",
     dagger: "none", buckler: "none", stance: "at_ease", stanceVi: 0, sword: "l18a:wood", colors: {} };
-  // Your own looks are free: build, hair and facial hair (and every colour). Gear costs XP.
-  const FREE_SLOTS = new Set(["body", "hair", "beard"]);
-  const FREE = new Set(["out:braies", "st:at_ease", "sw:l18a:wood"]);
+  // Your build, facial hair and every colour are free. A haircut costs HAIRCUT every time (it's a service, never owned).
+  // Gear costs XP, priced below.
+  const FREE_SLOTS = new Set(["body", "beard"]);
+  const FREE = new Set(["out:braies", "st:at_ease", "sw:l18a:wood", "sw:stick"]);
+  const HAIRCUT = 500;
   const slotOf = (itemId) => SLOTS[itemId.split(":")[0]];
   const valueOf = (itemId) => itemId.split(":").slice(1).join(":");
   const isFree = (id) => FREE.has(id) || FREE_SLOTS.has(slotOf(id)) || valueOf(id) === "none";
-  const priceOf = (id) => (isFree(id) ? 0 : PRICE);
+  // ---------- prices ----------
+  // a steady per-item wobble of a few hundred, so prices read 5,300 or 10,200 rather than round thousands
+  const wobble = (id, n) => { let h = 7; for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return (h % n) * 100; };
+  const clamp01 = (t) => Math.max(0, Math.min(1, t));
+  const r100 = (x) => Math.round(x / 100) * 100;
+  const WOOD_HAFT = new Set(["axes", "maces", "spears", "polearms", "americas", "oceania"]);
+  function swordPrice(mid) {
+    const m = swordById[mid]; if (!m) return PRICE;
+    if (mid === "ogreclub") return 500;
+    if (m.cls === "other") return 5000;
+    if (m.cls === "ancient" || m.cls === "filipino") return 3000;
+    const len = (m.spec.blade || 0) + (m.spec.grip || 0);
+    // wooden hafts (axes, maces, clubs, spears, polearms): 2,000 for a hand axe up to 5,000 for a long spear
+    if (WOOD_HAFT.has(m.cls)) return Math.min(5000, 2000 + r100(clamp01((len - 0.4) / 2.1) * 2800) + wobble(mid, 3));
+    // swords: by length, from an arming sword (~5,000) to a Zweihänder (~10,000); rapiers land between
+    return 5000 + r100(clamp01((len - 0.85) / 0.82) * 5000) + 100 + wobble(mid, 4); // never a round thousand
+  }
+  // garb 2,000–8,000; armour 10,000–15,000; headwear 1,000–5,000 (plate dearest), fencing masks 2,000; belts 500–600;
+  // Bigfoot (suit and mask) 20,000
+  const PRICES = {
+    "out:fiore": 4500, "out:gambeson": 3500, "out:i33": 3000, "out:walpurgis": 3800, "out:meyer": 7800, "out:fabris": 6500,
+    "out:fidalgo": 7200, "out:latouche": 7600, "out:maupin": 8000, "out:kilt": 4200, "out:hussar": 7400, "out:hutton": 3300,
+    "out:ladysalle": 4600, "out:whites": 2900, "out:hakama": 4800, "out:onna": 5300, "out:mamluk": 5600, "out:tuareg": 4100,
+    "out:kente": 5900, "out:agojie": 4400, "out:buckskin": 3600, "out:woodlands": 2700, "out:barong": 3900, "out:roman": 2400,
+    "out:chiton": 2000, "out:shendyt": 2100, "out:cass": 3500,
+    "arm:plain": 10400, "arm:gothic": 13800, "arm:milanese": 13200, "arm:maximilian": 14300, "arm:greenwich": 14700,
+    "arm:henry8": 15000, "arm:leicester": 14600, "arm:muhlberg": 14900, "arm:henry2": 14800, "arm:genouilhac": 14500,
+    "arm:erik14": 15000, "arm:corslet": 11200, "arm:munition": 10000, "arm:brigandine": 10900, "arm:mail": 11700,
+    "arm:segmentata": 11400, "arm:cuirass": 10700, "arm:ichcahuipilli": 10200, "arm:tlingit": 10600, "arm:oyoroi": 13600,
+    "arm:bigfoot": 20000,
+    "hat:beret": 1800, "hat:chaperone": 1500, "hat:bonnet": 1100, "hat:coif": 1000, "hat:cavalier": 2200, "hat:tricorne": 1600,
+    "hat:bicorne": 1900, "hat:busby": 2600, "hat:tophat": 2100, "hat:hennin": 2400, "hat:frenchhood": 2800, "hat:veil": 1200,
+    "hat:imperialcrown": 5000, "hat:crown": 4600, "hat:jingasa": 1700, "hat:turban": 1400, "hat:tagelmust": 1300, "hat:kufi": 1000,
+    "hat:fez": 1100, "hat:furturban": 1600, "hat:tlingithelm": 3400, "hat:salakot": 1200, "hat:kettle": 3200, "hat:morion": 3900,
+    "hat:sallet": 4600, "hat:closehelm": 4800, "hat:greenwichhelm": 5000, "hat:armetwrap": 4900, "hat:armet": 4700,
+    "hat:barbute": 4100, "hat:burgonet": 4300, "hat:greathelm": 4400, "hat:kabuto": 4500, "hat:horned": 5000, "hat:hounskull": 4600,
+    "hat:grotesque": 4800, "hat:frogmouth": 4900, "hat:oni": 4700, "hat:bigfootmask": 20000,
+    "hat:hemamask": 2000, "hat:hemaoverlay": 2000, "hat:catears": 1200, "hat:bunnyears": 1300,
+    "belt:belt": 500, "belt:swordbelt": 600, "belt:sash": 520, "belt:lksash": 580, "belt:obi": 560, "belt:baldric": 590, "belt:rope": 500,
+    "eyes:spectacles": 800, "eyes:pincenez": 900, "eyes:tinted": 850, "eyes:monocle": 950, "eyes:patch": 600,
+  };
+  function priceOf(id) {
+    if (isFree(id)) return 0;
+    if (PRICES[id] != null) return PRICES[id];
+    const slot = slotOf(id), v = valueOf(id);
+    if (slot === "hair") return HAIRCUT;
+    if (slot === "sword") return swordPrice(v.split(":")[0]);
+    if (slot === "dagger") return 2000;
+    if (slot === "buckler") { const b = bucklerById[v]; return b ? Math.min(6000, 1000 + r100(clamp01((b.spec.r - 0.13) / 0.13) * 5000) + wobble(id, 3)) : PRICE; }
+    if (slot === "stance") return 4000 + wobble(id, 21); // guards: 4,000–6,000
+    return PRICE;
+  }
+  const isService = (id) => slotOf(id) === "hair"; // paid for every time, never kept
+  // personal items: only the player with this name (any capitals) can buy or wear them; everyone else sees them locked
+  const LOCKED = { "out:cass": "cass" };
+  const playerName = () => { try { return String(JSON.parse(localStorage.getItem("so.player")) || ""); } catch (e) { return ""; } };
+  const locked = (id) => !!LOCKED[id] && playerName().trim().toLowerCase() !== LOCKED[id];
   const itemOfKit = (slot, k) => PREFIX[slot] + ":" + k[slot];
 
   let api = null; // from game.js: myRecord, saveRecord
   const rec = () => api.myRecord();
   const owned = (r = rec()) => new Set(r.owned || []);
-  const has = (id, set) => isFree(id) || set.has(id);
-  const kitOf = (r = rec()) => { const k = Object.assign({}, DEFAULT_KIT, r.kit || {}); k.colors = Object.assign({}, (r.kit || {}).colors);
+  const has = (id, set) => isFree(id) || (!isService(id) && set.has(id));
+  // A kit from a record, cleaned up: records can come from other players (the online Hall) or from older or newer
+  // versions of the game, so only text item ids and #rrggbb colours are kept; anything else falls back to the default.
+  // Ids this version doesn't know are fine: each slot falls back when drawn (bare head, no armour, the guard's own
+  // weapon, At Ease...).
+  const kitOf = (r = rec()) => {
+    const src = r && r.kit && typeof r.kit === "object" && !Array.isArray(r.kit) ? r.kit : {};
+    const k = Object.assign({}, DEFAULT_KIT);
+    for (const key of Object.keys(DEFAULT_KIT)) if (key !== "colors" && key !== "stanceVi" && typeof src[key] === "string" && src[key].length <= 80) k[key] = src[key];
+    k.stanceVi = Number.isInteger(src.stanceVi) && src.stanceVi >= 0 && src.stanceVi < 100 ? src.stanceVi : 0;
+    k.colors = {};
+    if (src.colors && typeof src.colors === "object") for (const [ck, cv] of Object.entries(src.colors)) if (ck.length <= 80 && typeof cv === "string" && /^#[0-9a-f]{6}$/i.test(cv)) k.colors[ck] = cv;
     if (k.stance === "shoulder_rest") { k.stance = "at_ease"; k.stanceVi = 1; } // "At Ease, Shouldered" is now At Ease variant 2
     return k; };
   const purse = (r = rec()) => Math.max(0, (r.xp || 0) - (r.spent || 0));
 
   // ---------- the look for a kit ----------
+  // which parts of a garb the player can colour: the top (jacket, sleeves, its stripes, a robe's skirt, breeches cut
+  // from the same cloth) and the legs (a separate skirt, breeches, and hose of the same colour). Bare skin, and
+  // accents in a different colour (boots, stockings, braid), keep the outfit's own colours.
+  const near = (a, b) => { const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+    return Math.abs((pa >> 16) - (pb >> 16)) + Math.abs(((pa >> 8) & 255) - ((pb >> 8) & 255)) + Math.abs((pa & 255) - (pb & 255)) < 110; };
+  function garbZones(l) {
+    const top = [], legs = [], cl = (v) => typeof v === "string" && v !== SKIN;
+    if (cl(l.jacket)) { top.push("jacket"); if (cl(l.arms)) top.push("arms"); if (l.stripes) top.push("stripes"); }
+    const skirtTop = cl(l.skirtColor) && l.skirtColor === l.jacket;
+    if (skirtTop) top.push("skirtColor"); else if (cl(l.skirtColor)) legs.push("skirtColor");
+    if (l.skirtStripes) legs.push("skirtStripes");
+    if (cl(l.thigh)) {
+      const z = l.thigh === l.jacket ? top : !cl(l.skirtColor) || skirtTop || l.thigh === l.skirtColor ? legs : null;
+      if (z) { z.push("thigh"); if (l.shin === l.thigh) z.push("shin"); }
+    }
+    return { top, legs };
+  }
   function lookFor(k) {
     const C = k.colors || {}, skin = C.skin || SKIN0, hair = C.hair || "#3b2a1d";
     const L = { style: "plain", jacket: skin, thigh: skin, shin: skin, shoe: null, hair, skin, beard: 0, mustache: false, bulk: 1 };
     const outfit = OUTFITS.find((o) => o.id === k.outfit) || OUTFITS[0];
     for (const [key, v] of Object.entries(outfit.look)) L[key] = v === SKIN ? skin : Array.isArray(v) ? v.map((x) => (x === SKIN ? skin : x)) : v;
     if (L.shoe === SKIN) L.shoe = skin;
+    // the player's colours for the garb (top and legs), over the outfit's own
+    const gz = garbZones(outfit.look);
+    for (const z of ["top", "legs"]) { const c = C["garb:" + outfit.id + ":" + z]; if (!c) continue;
+      for (const key of gz[z]) {
+        if (key === "stripes") { const [a, b] = outfit.look.stripes; L.stripes = [c, near(a, b) ? mix(c, "#1d1712", 0.18) : b]; } // quilting lines follow as a shade; contrasting trim stays
+        else if (key === "skirtStripes") L.skirtStripes = [c, outfit.look.skirtStripes[1]];
+        else L[key] = c;
+      } }
     // build, hair, facial hair, eyewear
     L.fem = k.body === "slender";
     if (L.fem && L.jacket === skin) L.breastband = true;
@@ -635,7 +747,8 @@
         if (A.tex === "mail" || A.tex === "fur") L.skirtDots = [ac, dark, A.tex === "fur" ? "fur" : "ring"]; else if (A.tex === "rivets") L.skirtDots = [ac, "#d4a62a", "dot"];
         else { L.skirtStripes = [ac, A.lacing || dark]; L.skirtAcross = true; } }
       if (A.pteruges) { L.skirtLen = 0.26; L.skirtStripes = [A.pteruges, mix(A.pteruges, "#1d1712", 0.35)]; L.skirtAcross = false; L.braies = false; }
-      L.armourParts = A.parts; L.armourColor = ac;
+      if (z.legs || z.shins) { delete L.shinL; delete L.shinR; } // greaves cover odd socks
+      L.armourParts = Object.assign({}, outfit.look.armourParts, A.parts); L.armourColor = ac; // (a garb's own elbow and knee cops stay on)
     }
     // headwear
     const H = HATS.find((h) => h.id === k.hat) || HATS[0];
@@ -690,6 +803,19 @@
       x.lineWidth = 1.4; x.strokeStyle = ink; return; }
     if (spec.mace) { // a mace or club: the haft and its head
       const mc = spec.mace, len = spec.grip + spec.blade, x0 = 8, xh = x0 + (spec.grip + (mc.at || 1) * spec.blade) * S, gr = Math.max(2.5, (spec.gripR || 0.016) * S * 1.6), headC = spec.bladeColor || "#d9d6cf";
+      if (mc.type === "stick") { // a plain stick with a few snapped-off twig stubs
+        const xe = x0 + len * S; shape([[x0, cy - gr], [xe, cy - gr * 0.85], [xe, cy + gr * 0.85], [x0, cy + gr]], gripC);
+        for (const [t, sg, l] of [[0.3, -1, 7], [0.5, 1, 9], [0.68, -1, 6], [0.86, 1, 8]]) { const px = x0 + len * S * t; shape([[px - 2, cy + sg * gr * 0.6], [px + l * 0.8, cy + sg * (gr + l)], [px + l * 0.8 + 3, cy + sg * (gr + l - 1.5)], [px + 3, cy + sg * gr * 0.6]], gripC); }
+        return;
+      }
+      if (mc.type === "ogre") { // a tapering wooden haft and a lumpy burl at the end, all one brown wood
+        const xe = x0 + len * S, r = mc.r * S, xb = xe - r * 1.2, hr = (mc.haft || 0.034) * S * 1.6;
+        shape([[x0, cy - gr], [xb, cy - hr], [xb, cy + hr], [x0, cy + gr]], gripC);
+        for (const [dx, dy, k] of [[-0.6, -0.75, 0.5], [0.5, 0.8, 0.45], [0.75, -0.55, 0.4], [-0.2, 0.9, 0.35], [-0.8, 0.5, 0.4]]) oval(xb + dx * r, cy + dy * r * 0.9, r * k, r * k * 0.85, headC);
+        oval(xb, cy, r * 1.25, r, headC);
+        for (const [dx, dy] of [[-0.4, -0.3], [0.3, 0.35], [0.5, -0.4], [-0.1, 0.1]]) oval(xb + dx * r, cy + dy * r, 2, 1.5, ink);
+        return;
+      }
       shape([[x0, cy - gr], [x0 + len * S, cy - gr], [x0 + len * S, cy + gr], [x0, cy + gr]], gripC);
       if (mc.type === "club") { const cl = (mc.len || 0.45) * S, xe = x0 + len * S; oval(xe - cl / 2, cy, cl / 2, mc.r * S, headC);
         for (let i = 0; i < 6; i++) oval(xe - cl * (0.15 + i * 0.14), cy + (i % 2 ? -1 : 1) * mc.r * S * 0.55, 2, 2, ink); }
@@ -745,9 +871,11 @@
     if (spec.hooks) { const hx = xc + spec.hooks.at * L, hl = (spec.hooks.len || 0.05) * S * 1.4; // parrying hooks, angled toward the point
       shape([[hx - 3, cy - bw], [hx + 2, cy - bw - hl], [hx + 4.5, cy - bw - hl], [hx, cy - bw]], hiltC);
       shape([[hx - 3, cy + bw], [hx + 2, cy + bw + hl], [hx + 4.5, cy + bw + hl], [hx, cy + bw]], hiltC); }
+    if (spec.nagel) oval(xc + 0.014 * S, cy, 3.2, 3.2, hiltC); // the Nagel, seen end-on
     if (spec.band) shape([[xc + 0.06 * S, cy - bw * 0.9], [xc + 0.15 * S, cy - bw * 0.9], [xc + 0.15 * S, cy + bw * 0.9], [xc + 0.06 * S, cy + bw * 0.9]], "#d4a62a");
     if (spec.schilt === "tulip") { shape([[xc, cy - bw * 2.6], [xc + 0.1 * S, cy - bw * 3.6], [xc + 0.13 * S, cy - bw * 2.4], [xc + 0.12 * S, cy - bw],
         [xc + 0.12 * S, cy + bw], [xc + 0.13 * S, cy + bw * 2.4], [xc + 0.1 * S, cy + bw * 3.6], [xc, cy + bw * 2.6]], bladeC); }
+    else if (spec.schilt === "pointed") shape([[xc, cy - bw * 1.9], [xc + 0.035 * S, cy - bw * 1.75], [xc + 0.065 * S, cy - bw], [xc + 0.065 * S, cy + bw], [xc + 0.035 * S, cy + bw * 1.75], [xc, cy + bw * 1.9]], bladeC);
     else if (spec.schilt) shape([[xc, cy - bw * 2.2], [xc + 0.08 * S, cy - bw], [xc + 0.08 * S, cy + bw], [xc, cy + bw * 2.2]], bladeC);
     // grip
     const gr = (spec.gripR || 0.017) * S * 1.6;
@@ -766,7 +894,7 @@
         x.beginPath(); x.moveTo(xc - c * 0.6, cy - c); x.lineTo(xc + c * 0.6, cy + c); x.moveTo(xc - c * 0.6, cy + c); x.lineTo(xc + c * 0.6, cy - c); x.stroke();
         x.lineWidth = 1.4; x.strokeStyle = ink; }
       else if (spec.crossStyle === "s") { shape([[xc - cr, cy - c * 0.85], [xc + cr, cy - c * 0.85], [xc + cr, cy + c * 0.85], [xc - cr, cy + c * 0.85]], hiltC);
-        oval(xc, cy - c * 0.92, cr * 1.9, cr * 1.3, hiltC); oval(xc, cy + c * 0.92, cr * 1.9, cr * 1.3, hiltC); }
+        if (spec.sKnobs !== false) { oval(xc, cy - c * 0.92, cr * 1.9, cr * 1.3, hiltC); oval(xc, cy + c * 0.92, cr * 1.9, cr * 1.3, hiltC); } }
       else if (spec.crossStyle === "droop") shape([[xc - cr, cy], [xc + 0.035 * S, cy - c], [xc + 0.035 * S + cr, cy - c + 1], [xc + cr, cy], [xc + 0.035 * S + cr, cy + c - 1], [xc + 0.035 * S, cy + c]], hiltC);
       else shape([[xc - cr, cy - c], [xc + cr, cy - c], [xc + cr, cy + c], [xc - cr, cy + c]], hiltC);
       if (spec.crossStyle === "flare" || spec.crossKnobs) { const dx = spec.crossKnobs ? 0.035 * S : 0; oval(xc + dx, cy - c, cr * 1.6, cr * 1.6, hiltC); oval(xc + dx, cy + c, cr * 1.6, cr * 1.6, hiltC); }
@@ -913,14 +1041,15 @@
     btn.classList.remove("hidden"); btn.disabled = false; btn.classList.remove("confirm");
     const worn = itemOfKit(slotOf(preview), k) === preview;
     if (worn) { btn.textContent = "Worn"; btn.disabled = true; }
+    else if (locked(preview)) { btn.textContent = "Locked"; btn.disabled = true; }
     else if (has(preview, mine)) btn.textContent = slotOf(preview) === "stance" ? "Take this guard" : priceOf(preview) ? "Wear it" : "Choose";
-    else if (purse(r) < priceOf(preview)) { btn.textContent = `${priceOf(preview)} XP · need ${(priceOf(preview) - purse(r)).toLocaleString()} more`; btn.disabled = true; }
-    else btn.textContent = confirmFor === preview ? `Tap again · ${priceOf(preview)} XP` : `Buy · ${priceOf(preview)} XP`;
+    else if (purse(r) < priceOf(preview)) { btn.textContent = `${priceOf(preview).toLocaleString()} XP · need ${(priceOf(preview) - purse(r)).toLocaleString()} more`; btn.disabled = true; }
+    else btn.textContent = confirmFor === preview ? `Tap again · ${priceOf(preview).toLocaleString()} XP` : `${isService(preview) ? "Haircut" : "Buy"} · ${priceOf(preview).toLocaleString()} XP`;
     if (confirmFor === preview && !has(preview, mine)) btn.classList.add("confirm");
   }
   function saveKit(mut) { const r = rec(), k = kitOf(r); mut(k, r); r.kit = k; api.saveRecord(r); }
   function onAction() {
-    if (!preview) return;
+    if (!preview || locked(preview)) return;
     const r = rec(), mine = owned(r);
     const take = () => { saveKit((k) => { k[slotOf(preview)] = valueOf(preview); if (slotOf(preview) === "stance") k.stanceVi = cardVi[k.stance] || 0; }); };
     if (has(preview, mine)) { take(); window.Sfx && Sfx.quill(); preview = null; paintAll(); return; }
@@ -931,7 +1060,7 @@
       confirmTimer = setTimeout(() => { confirmFor = null; paintAction(); }, 3500); return;
     }
     confirmFor = null;
-    saveKit((k, rr) => { rr.spent = (rr.spent || 0) + cost; rr.owned = [...new Set([...(rr.owned || []), preview])]; k[slotOf(preview)] = valueOf(preview);
+    saveKit((k, rr) => { rr.spent = (rr.spent || 0) + cost; if (!isService(preview)) rr.owned = [...new Set([...(rr.owned || []), preview])]; k[slotOf(preview)] = valueOf(preview);
       if (slotOf(preview) === "stance") k.stanceVi = cardVi[k.stance] || 0; });
     window.Sfx && Sfx.coin && Sfx.coin();
     preview = null; paintAll();
@@ -952,8 +1081,9 @@
 
   function stateOf(itemId, mine, k) {
     if (itemOfKit(slotOf(itemId), k) === itemId) return { cls: "worn", tag: "Worn" };
+    if (locked(itemId)) return { cls: "locked", tag: "Locked" };
     if (has(itemId, mine)) return { cls: "owned", tag: priceOf(itemId) ? "Owned" : "Free" };
-    return { cls: "", tag: priceOf(itemId) + " XP" };
+    return { cls: "", tag: priceOf(itemId).toLocaleString() + " XP" };
   }
   function markCards() {
     const mine = owned(), k = kitOf();
@@ -973,13 +1103,13 @@
 
   // 3D card pictures (one shared off-screen figure), cached per item and the rest of the kit
   function picture(kit, opts = {}) {
-    const key = JSON.stringify(kit) + "|" + (opts.focus || "") + "|" + (opts.pose ? "p" : "");
+    const key = JSON.stringify(kit) + "|" + (opts.focus || "") + "|" + (opts.pose ? "p" : "") + "|" + (opts.view != null ? opts.view : "");
     if (thumbCache.has(key)) return thumbCache.get(key);
     if (!thumbFig) thumbFig = Fencer3D.makeFigure(document.createElement("div"), "#a3261d", { preserve: true, size: [220, 260] });
     const p = opts.pose || stancePose(kit.stance, kit.stanceVi);
     thumbFig.setFocus(opts.focus || null);
     dress(thumbFig, kit, p);
-    thumbFig.setView(opts.focus === "head" ? 40 : p.view != null ? p.view : 25);
+    thumbFig.setView(opts.view != null ? opts.view : opts.focus === "head" ? 40 : p.view != null ? p.view : 25);
     thumbFig.render();
     const src = thumbFig.canvas.toDataURL("image/png");
     thumbFig.setFocus(null);
@@ -1034,7 +1164,7 @@
     const k = kitOf(), C = k.colors, hint = $("#arm-hint");
     const add = (el) => grid.appendChild(el);
     if (tab === "fencer") {
-      hint.textContent = "Your fencer's looks are free. Glasses and patches cost XP.";
+      hint.textContent = "Build, skin, beard and colours are free. A haircut costs 500 XP every time; glasses and patches cost XP.";
       add(heading("Build"));
       for (const o of BODIES) add(card("body:" + o.id, o.name, o.note, picture(kitWith("body", o.id), { pose: stancePose("at_ease") })));
       add(colorRow("Skin", "skin", "skin", C.skin || SKIN0));
@@ -1050,7 +1180,7 @@
       hint.textContent = "Every weapon comes in five hilts and in wood. Tap a finish to try it.";
       // colours for the weapon in hand (or being tried): the grip on its own, and the hilt metal
       const wm = (preview && slotOf(preview) === "sword" ? valueOf(preview) : k.sword).split(":")[0], W = swordById[wm];
-      if (W && !W.spec.bazooka) {
+      if (W && !W.spec.bazooka && !W.spec.woodTex) { // (wood-grain weapons are their own colour)
         add(colorRow("Grip colour: " + W.name, "swgrip:" + wm, "leather", C["swgrip:" + wm]));
         if (!W.single) add(finishRow(W));
       }
@@ -1068,6 +1198,10 @@
       for (const o of BUCKLERS) add(card("bk:" + o.id, o.name, o.note, canvasPic((cv) => drawBuckler(cv, o.spec), 160, 120)));
     } else if (tab === "garb") {
       hint.textContent = "Garb for your fencer. Quiz fencers keep their masters' dress.";
+      const O = OUTFITS.find((o) => o.id === k.outfit);
+      if (O) { const gz = garbZones(O.look), both = gz.top.length && gz.legs.length;
+        if (gz.top.length) add(colorRow((both ? "Top: " : "Colour: ") + O.name, "garb:" + O.id + ":top", "cloth", C["garb:" + O.id + ":top"]));
+        if (gz.legs.length) add(colorRow((both ? "Legs: " : "Colour: ") + O.name, "garb:" + O.id + ":legs", "cloth", C["garb:" + O.id + ":legs"])); }
       for (const o of OUTFITS) add(card("out:" + o.id, o.name, o.note, picture(kitWith("outfit", o.id), { pose: stancePose("at_ease") })));
     } else if (tab === "armour") {
       hint.textContent = "Armour goes over your garb.";
@@ -1086,7 +1220,7 @@
       hint.textContent = "Belts and sashes.";
       const Bt = BELTS.find((b) => b.id === k.belt);
       if (Bt && Bt.look) add(colorRow("Colour: " + Bt.name, "belt:" + Bt.id, "leather", C["belt:" + Bt.id]));
-      for (const o of BELTS) add(card("belt:" + o.id, o.name, o.note, picture(kitWith("belt", o.id), { focus: "waist", pose: stancePose("at_ease") })));
+      for (const o of BELTS) add(card("belt:" + o.id, o.name, o.note, picture(kitWith("belt", o.id), { focus: "waist", pose: stancePose("at_ease"), view: 130 }))); // seen from their left side, clear of the sword and arms
     } else if (tab === "guards") {
       hint.textContent = "Guards your fencer can stand in. Every guard stays in the quiz either way.";
       add(heading("Rest"));
@@ -1143,8 +1277,24 @@
     return wrap;
   }
   function paintAll() { paintStage(); paintAction(); renderGrid(); paintTabs(); }
-  function render() { preview = null; confirmFor = null; paintAll(); }
+  function render() { preview = null; confirmFor = null; paintAll(); welcome(); }
+  // first visit only: a note on what the Armoury is for and that nothing costs real money
+  // (screenshot demos skip it; add &welcome to the hash to force it)
+  function welcome() {
+    const box = $("#arm-welcome"), force = /welcome/.test(location.hash);
+    let seen = false; try { seen = !!localStorage.getItem("so.armWelcome"); } catch (e) { seen = true; }
+    if (!box || (!force && (seen || /demo=/.test(location.hash)))) return;
+    box.classList.remove("hidden"); const ok = $("#arm-welcome-ok"); ok.focus();
+    ok.onclick = () => { box.classList.add("hidden"); window.Sfx && Sfx.quill();
+      try { localStorage.setItem("so.armWelcome", "1"); } catch (e) { /* private mode */ } };
+  }
 
-  window.Armoury = { init, render, swordSpec, lookFor, stancePose, kitOf, SWORDS, OUTFITS, HATS, ARMOURS, BELTS, DAGGERS, BUCKLERS, HAIRS, BEARDS, EYES, FINISH, PRICE,
+  // any player's kit from their record (same defaults and fix-ups as your own)
+  const kitOfRecord = (r) => kitOf(r || {});
+  // a small head-and-shoulders portrait for the Hall of Masters
+  const portrait = (r) => { const k = kitOfRecord(r); return picture(k, { focus: "head", pose: stancePose("at_ease") }); };
+  // dress a figure as a player's fencer standing in their chosen guard; returns the pose
+  function showFencer(fig, r) { const k = kitOfRecord(r), p = stancePose(k.stance, k.stanceVi); fig.setFocus(null); dress(fig, k, p); return p; }
+  window.Armoury = { init, render, portrait, showFencer, swordSpec, lookFor, stancePose, kitOf, SWORDS, OUTFITS, HATS, ARMOURS, BELTS, DAGGERS, BUCKLERS, HAIRS, BEARDS, EYES, FINISH, PRICE,
     setTab: (t) => { tab = t; } };
 })();

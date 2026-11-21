@@ -242,6 +242,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   background: rgba(255,250,235,.55); color: var(--ink); user-select: text; }
 .name-form .count, .name-form .err { text-align: center; margin: 0; }
 .hall-note { text-align: center; font-size: 13px; font-style: italic; color: var(--ink-2); margin: 6px 0; }
+.hall-online:empty { display: none; }
 .board tr.me td { font-weight: 700; }
 .board tr.me .mk { color: var(--red); }
 
@@ -262,6 +263,9 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   border: 1.5px solid var(--ink-2); border-radius: 50%; background: rgba(255,250,235,.8); color: var(--ink); font-size: 30px; line-height: 1; }
 .vzoom-cap { font-weight: 700; font-size: 20px; margin: 6px 0 0; }
 .vzoom-hint { font-size: 13px; font-style: italic; color: var(--ink-2); margin: 2px 0 0; }
+.vzoom-report { align-self: center; margin: 6px auto 0; display: block; background: none; border: 0; padding: 4px 8px; font: italic 14px var(--body); color: var(--red); text-decoration: underline; cursor: pointer; }
+.vzoom-report:disabled { color: var(--ink-2); text-decoration: none; cursor: default; }
+.vzoom-report.hidden { display: none; }
 
 /* The Salle heading in the readable face (in blackletter "Salle" reads as "Galle") */
 .heading.plain { font-family: var(--body); font-weight: 700; font-size: 32px; }
@@ -536,6 +540,13 @@ html.app .hammer { display: none; }
 .report-go { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-top: 10px; }
 .report-go .big { min-height: 46px; }
 .report-go .big:disabled { opacity: .45; cursor: default; }
+.arm-welcome { max-height: calc(100% - 8px); overflow-y: auto; }
+.arm-welcome p { margin: 8px 0 0; font-size: 15px; line-height: 1.4; }
+.arm-welcome ul { margin: 8px 0 0; padding-left: 20px; font-size: 15px; line-height: 1.35; }
+.arm-welcome li + li { margin-top: 4px; }
+.arm-welcome-free { padding: 8px 10px; border: 1px dashed var(--ink-2); border-radius: 6px; text-align: center; }
+.arm-welcome-go { grid-template-columns: 1fr; }
+.arm-welcome-red { color: var(--red); }
 
 /* ---------- The Armoury ---------- */
 /* the fencer stays on screen at the top; only the list of things below scrolls */
@@ -608,3 +619,13 @@ html.app .hammer { display: none; }
 .csw.owned::after { content: "✓"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 14px; font-weight: 700; color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000; }
 /* "Not quite" / "Too slow": Continue stays pinned to the bottom of the sheet, so it never needs a scroll to reach */
 #fbw-next { position: sticky; bottom: 0; z-index: 3; margin-top: 8px; box-shadow: 0 -10px 12px 4px var(--parch), inset 0 0 0 1px rgba(255,250,235,.7), 0 2px 0 rgba(29,23,18,.28); }
+/* Hall of Masters: each name has its fencer's face; tap it to see the whole fencer */
+.hall-board td.face { width: 52px; padding: 4px 6px 4px 0; }
+.hall-face { display: block; width: 46px; height: 46px; padding: 0; border: 1.5px solid var(--ink-2); border-radius: 3px; overflow: hidden;
+  background: linear-gradient(180deg, #e9dcbc, #d8c79d); cursor: pointer; }
+.hall-face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hall-face:active { transform: translateY(1px); }
+.board tr.gold .hall-face { border: 2px solid var(--gold); }
+.hall-rank { display: block; font-family: var(--body); font-size: 12px; font-style: italic; color: var(--ink-2); margin-top: 2px; }
+.hall-row { cursor: pointer; }
+.hall-row:hover td, .hall-row:active td { background-color: rgba(29,23,18,.06); }
